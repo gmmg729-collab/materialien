@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinderarmut – Zuordnungsspiel</title>
+<style>
+  :root{
+    --bg:#fdf8ef;
+    --ink:#2b2b2b;
+    --muted:#6b6b6b;
+    --poor:#c0392b;
+    --poor-soft:#fbe3e0;
+    --ok:#2e9d5b;
+    --ok-soft:#dff4e7;
+    --gold:#f1c40f;
+    --shadow:0 6px 20px rgba(0,0,0,.15);
+    --radius:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Comic Sans MS","Comic Neue","Trebuchet MS",Verdana,sans-serif;
+    background:var(--bg);color:var(--ink);
+    display:flex;flex-direction:column;
+    user-select:none;-webkit-user-select:none;overflow:hidden;
+  }
+  button{font-family:inherit;cursor:pointer}
+
+  /* ---------- Kopfzeile ---------- */
+  header{display:flex;align-items:center;gap:20px;padding:12px 24px 6px}
+  header h1{margin:0;font-size:clamp(22px,2.6vw,38px);flex:1}
+  .scorebox{
+    display:flex;align-items:center;gap:10px;
+    background:#fff;border:4px solid var(--gold);border-radius:18px;
+    padding:4px 18px;box-shadow:var(--shadow);
+    font-size:clamp(18px,1.8vw,26px);font-weight:bold;
+  }
+  .scorebox .num{font-size:clamp(26px,3vw,42px);color:#b8860b;min-width:1.6em;text-align:center}
+  .scorebox.bump .num{animation:bump .5s}
+  @keyframes bump{40%{transform:scale(1.4)}}
+  .tools button{
+    font-size:clamp(13px,1.1vw,16px);padding:8px 14px;border-radius:12px;
+    border:2px solid #cbbfa9;background:#fff;
+  }
+  .tools button:hover{background:#f3ece0}
+
+  .progress-wrap{padding:4px 24px 10px;display:flex;align-items:center;gap:14px}
+  .progress{flex:1;height:22px;background:#eadfcd;border-radius:12px;overflow:hidden}
+  .progress-bar{height:100%;width:0;background:linear-gradient(90deg,#7bc96f,#2e9d5b);border-radius:12px;transition:width .5s}
+  .progress-text{font-size:clamp(14px,1.4vw,20px);font-weight:bold;white-space:nowrap}
+
+  /* ---------- Spielfeld ---------- */
+  main{
+    flex:1;min-height:0;
+    display:grid;grid-template-columns:1fr minmax(280px,1fr) 1fr;
+    gap:22px;padding:6px 24px 18px;
+  }
+  .zone{
+    display:flex;flex-direction:column;min-height:0;
+    border-radius:var(--radius);border:6px dashed;
+    transition:transform .2s, background .2s, box-shadow .2s;
+    cursor:pointer;
+  }
+  .zone.poor{border-color:var(--poor);background:var(--poor-soft)}
+  .zone.ok{border-color:var(--ok);background:var(--ok-soft)}
+  .zone.hover{transform:scale(1.03);box-shadow:0 0 0 8px rgba(0,0,0,.07)}
+  .zone.poor.hover{background:#f7c9c3}
+  .zone.ok.hover{background:#bfe9cf}
+  .zone.flash-wrong{animation:flashWrong .6s}
+  @keyframes flashWrong{30%,70%{background:#ffd0d0}}
+  .zone.flash-right{animation:flashRight .7s}
+  @keyframes flashRight{30%,70%{box-shadow:0 0 0 12px rgba(46,157,91,.35)}}
+  .zone h2{margin:0;padding:14px 10px 4px;text-align:center;font-size:clamp(22px,2.5vw,38px)}
+  .zone.poor h2{color:var(--poor)}
+  .zone.ok h2{color:var(--ok)}
+  .zone .sub{text-align:center;margin:0 10px 8px;color:var(--muted);font-size:clamp(13px,1.15vw,17px)}
+  .zone-list{
+    flex:1;overflow:auto;
+    display:flex;flex-wrap:wrap;align-content:flex-start;justify-content:center;
+    gap:8px;padding:6px 10px 12px;
+  }
+  .mini{
+    display:flex;align-items:center;gap:6px;
+    background:#fff;border:3px solid;border-radius:999px;
+    padding:4px 12px 4px 6px;font-size:clamp(12px,1.05vw,16px);
+    animation:pop .45s;
+  }
+  .zone.poor .mini{border-color:var(--poor)}
+  .zone.ok .mini{border-color:var(--ok)}
+  .mini .e{font-size:1.5em;position:relative}
+  @keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+  /* ---------- Mitte: aktuelle Karte ---------- */
+  .stage{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;position:relative;
+  }
+  .hint{font-size:clamp(15px,1.4vw,21px);color:var(--muted);text-align:center;margin:0}
+  .arrows{font-size:clamp(26px,2.6vw,40px);color:#c9b48a;display:flex;justify-content:space-between;width:100%}
+  .card{
+    width:min(100%,360px);
+    background:#fff;border:5px solid #444;border-radius:28px;
+    box-shadow:var(--shadow);
+    padding:20px 18px 22px;
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    cursor:grab;touch-action:none;position:relative;z-index:5;
+  }
+  .card.appear{animation:appear .55s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes appear{0%{transform:scale(0) rotate(-12deg);opacity:0}100%{transform:scale(1);opacity:1}}
+  .card.dragging{cursor:grabbing;box-shadow:0 18px 40px rgba(0,0,0,.3);transition:none;z-index:100}
+  .card.returning{transition:transform .45s cubic-bezier(.3,1.5,.5,1)}
+  .card.shake{animation:shake .45s}
+  @keyframes shake{20%,60%{transform:translateX(-14px)}40%,80%{transform:translateX(14px)}}
+  .card.gone{transition:transform .35s, opacity .35s;opacity:0}
+  .pic{
+    position:relative;width:clamp(130px,14vw,200px);height:clamp(130px,14vw,200px);
+    border-radius:50%;background:#fff6dc;
+    display:flex;align-items:center;justify-content:center;
+    font-size:clamp(76px,8.5vw,120px);line-height:1;
+  }
+  .pic .no{
+    position:absolute;right:-4px;bottom:-4px;
+    width:42%;height:42%;border-radius:50%;
+    background:#fff;border:4px solid var(--poor);
+    display:flex;align-items:center;justify-content:center;
+    font-size:.38em;
+  }
+  .card .label{font-size:clamp(22px,2.3vw,34px);font-weight:bold;text-align:center;line-height:1.15}
+
+  /* ---------- Rückmeldung ---------- */
+  .feedback{
+    position:fixed;left:50%;bottom:22px;transform:translate(-50%,150%);
+    width:min(900px,92vw);
+    background:#fff;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.25);
+    padding:16px 24px;display:flex;gap:16px;align-items:center;
+    transition:transform .35s;z-index:2000;
+    border-left:12px solid var(--ok);
+  }
+  .feedback.show{transform:translate(-50%,0)}
+  .feedback.wrong{border-left-color:var(--poor)}
+  .feedback .icon{font-size:clamp(34px,3.5vw,52px)}
+  .feedback .text strong{display:block;font-size:clamp(18px,1.9vw,28px)}
+  .feedback .text span{font-size:clamp(15px,1.5vw,22px)}
+  .feedback .next{
+    margin-left:auto;font-size:clamp(16px,1.6vw,23px);font-weight:bold;
+    padding:10px 20px;border:none;border-radius:14px;background:var(--ok);color:#fff;
+    box-shadow:0 4px 0 #1f6e3f;white-space:nowrap;
+  }
+  .feedback.wrong .next{display:none}
+
+  /* ---------- Overlays ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(40,30,15,.55);display:flex;align-items:center;justify-content:center;z-index:3000}
+  .overlay.hidden{display:none}
+  .panel{
+    background:#fff;border-radius:26px;padding:28px 36px;
+    width:min(820px,94vw);max-height:92vh;overflow:auto;
+    text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);
+  }
+  .panel h2{margin:0 0 10px;font-size:clamp(26px,3vw,44px)}
+  .panel p{font-size:clamp(16px,1.6vw,23px);line-height:1.4;margin:8px 0}
+  .panel .rules{text-align:left;font-size:clamp(15px,1.5vw,22px);line-height:1.5;margin:14px auto;max-width:640px}
+  .big-btn{
+    font-size:clamp(20px,2vw,30px);font-weight:bold;
+    padding:12px 34px;border-radius:18px;border:none;
+    background:var(--ok);color:#fff;box-shadow:0 5px 0 #1f6e3f;margin-top:10px;
+  }
+  .big-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #1f6e3f}
+  .stars{font-size:clamp(40px,5vw,70px);margin:6px 0}
+  .talk{background:#fff7e3;border-radius:16px;padding:12px 18px;text-align:left;margin-top:14px}
+  .talk h3{margin:0 0 6px;font-size:clamp(17px,1.6vw,24px)}
+  .talk ul{margin:0;padding-left:22px;font-size:clamp(15px,1.4vw,20px);line-height:1.45}
+
+  .confetti{position:fixed;top:-20px;width:12px;height:18px;z-index:2500;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+  @media (max-width:900px){
+    body{overflow:auto}
+    main{grid-template-columns:1fr 1fr;grid-template-rows:auto minmax(220px,1fr)}
+    .stage{grid-column:1/3;grid-row:1}
+    .arrows{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Was ist Kinderarmut?</h1>
+  <div class="scorebox" id="scoreBox">⭐ Punkte <span class="num" id="score">0</span></div>
+  <div class="tools">
+    <button id="btnRules">❓ Regeln</button>
+    <button id="btnRestart">↺ Neu starten</button>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-text" id="progressText"></div>
+  <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+</div>
+
+<main>
+  <section class="zone poor" data-zone="arm" id="zoneArm">
+    <h2>Kinderarmut</h2>
+    <div class="sub">Das braucht jedes Kind – wenn es fehlt, ist das Armut.</div>
+    <div class="zone-list" id="listArm"></div>
+  </section>
+
+  <section class="stage" id="stage">
+    <p class="hint">Wohin gehört diese Karte?</p>
+    <div class="arrows"><span>⬅</span><span>➡</span></div>
+    <!-- aktuelle Karte wird hier eingefügt -->
+  </section>
+
+  <section class="zone ok" data-zone="nichtarm" id="zoneOk">
+    <h2>Keine Kinderarmut</h2>
+    <div class="sub">Schön zu haben – aber man ist nicht arm ohne.</div>
+    <div class="zone-list" id="listOk"></div>
+  </section>
+</main>
+
+<div class="feedback" id="feedback">
+  <div class="icon" id="fbIcon">✅</div>
+  <div class="text"><strong id="fbTitle"></strong><span id="fbText"></span></div>
+  <button class="next" id="btnNext">Nächste Karte ➜</button>
+</div>
+
+<!-- Startbildschirm -->
+<div class="overlay" id="startOverlay">
+  <div class="panel">
+    <h2>🧩 Was ist Kinderarmut?</h2>
+    <p>Was braucht ein Kind <b>unbedingt</b> – und was ist nur <b>schön zu haben</b>?</p>
+    <ol class="rules">
+      <li>In der Mitte erscheint immer <b>eine Karte</b> mit Bild.</li>
+      <li>Zieh sie in die Spalte <b style="color:var(--poor)">Kinderarmut</b> oder <b style="color:var(--ok)">Keine Kinderarmut</b>.<br><small>(Oder: einfach die richtige Spalte antippen.)</small></li>
+      <li><b>Richtig beim ersten Versuch:</b> 10 Punkte ⭐ &nbsp; <b>Beim zweiten Versuch:</b> 5 Punkte</li>
+      <li><b>Falsch?</b> Die Karte springt zurück – probiert es noch einmal!</li>
+    </ol>
+    <button class="big-btn" id="btnStart">Los geht’s!</button>
+  </div>
+</div>
+
+<!-- Endbildschirm -->
+<div class="overlay hidden" id="endOverlay">
+  <div class="panel">
+    <h2>🎉 Geschafft!</h2>
+    <div class="stars" id="stars"></div>
+    <p id="endText"></p>
+    <div class="talk">
+      <h3>💬 Darüber können wir sprechen:</h3>
+      <ul>
+        <li>Was braucht ein Kind <b>unbedingt</b>, um gesund und gut aufzuwachsen?</li>
+        <li>Warum ist man nicht arm, nur weil man kein neues Handy oder keine Markenkleidung hat?</li>
+        <li>Warum gehört auch „bei Ausflügen dabei sein“ zu den wichtigen Dingen?</li>
+        <li>Wer kann Kindern helfen, denen etwas Wichtiges fehlt?</li>
+      </ul>
+    </div>
+    <button class="big-btn" id="btnAgain">Nochmal spielen</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   FRAGENPOOL – hier können Karten ergänzt oder geändert werden.
+   pic:  Bild (Emoji). Das rote ❌ wird automatisch dazugesetzt.
+   zone: "arm"      = Kinderarmut
+         "nichtarm" = Keine Kinderarmut
+   info: kurze Erklärung nach richtiger Zuordnung
+   ========================================================= */
+const CARDS = [
+  // --- Kinderarmut: Grundbedürfnisse fehlen ---
+  {pic:"💧", text:"Kein sauberes Wasser",        zone:"arm",      info:"Ohne sauberes Wasser zum Trinken und Waschen wird man krank. Das braucht jeder Mensch."},
+  {pic:"🍽️", text:"Nicht genug zu essen",        zone:"arm",      info:"Kinder brauchen jeden Tag genug Essen, um zu wachsen und gut lernen zu können."},
+  {pic:"🍞", text:"Hungersnot haben",            zone:"arm",      info:"Wer lange hungern muss, ist in großer Not. Das ist sehr schlimme Armut."},
+  {pic:"🛏️", text:"Kein Bett",                   zone:"arm",      info:"Jedes Kind braucht einen Schlafplatz, um sich gut ausruhen zu können."},
+  {pic:"🧥", text:"Keine warme Jacke im Winter", zone:"arm",      info:"Ohne warme Kleidung friert man im Winter und kann krank werden."},
+  {pic:"🌡️", text:"Keine Heizung im Winter",     zone:"arm",      info:"Eine warme Wohnung ist wichtig für die Gesundheit."},
+  {pic:"🩺", text:"Keine medizinische Hilfe",    zone:"arm",      info:"Wenn ein Kind krank ist, muss es zum Arzt gehen können und Medizin bekommen."},
+  {pic:"🎒", text:"Keine Schulsachen",           zone:"arm",      info:"Ohne Hefte, Stifte und Bücher kann man in der Schule nicht gut lernen."},
+  {pic:"🥪", text:"Kein Pausenbrot",             zone:"arm",      info:"Mit leerem Magen kann man nicht gut lernen. Ein Frühstück gehört zu den wichtigen Dingen."},
+  {pic:"🚌", text:"Kein Geld für Ausflüge",      zone:"arm",      info:"Wer nie mitfahren kann, wenn die Klasse einen Ausflug macht, wird ausgeschlossen. Auch das ist Kinderarmut."},
+  {pic:"🧸", text:"Gar kein Spielzeug",          zone:"arm",      info:"Spielen ist für Kinder wichtig zum Lernen. Wenn ein Kind gar nichts zum Spielen hat, fehlt etwas Wichtiges."},
+
+  // --- Keine Kinderarmut: schöne Extras / Wünsche ---
+  {pic:"🍬", text:"Keine Süßigkeiten",           zone:"nichtarm", info:"Süßigkeiten schmecken lecker, aber man braucht sie nicht zum Leben."},
+  {pic:"👟", text:"Keine Markenkleidung",        zone:"nichtarm", info:"Wichtig ist, dass die Kleidung warm ist und passt. Die Marke ist egal."},
+  {pic:"📱", text:"Nicht das neueste Handy",     zone:"nichtarm", info:"Ein neues Handy ist ein Wunsch. Man ist nicht arm, wenn man ein altes oder gar keins hat."},
+  {pic:"🐶", text:"Kein Haustier",               zone:"nichtarm", info:"Ein Haustier ist schön, aber viele Kinder haben keins – das ist kein Zeichen von Armut."},
+  {pic:"🚪", text:"Kein eigenes Zimmer",         zone:"nichtarm", info:"Viele Geschwister teilen sich ein Zimmer. Wichtig ist, dass jedes Kind ein eigenes Bett hat."},
+  {pic:"📺", text:"Kein Fernseher",              zone:"nichtarm", info:"Fernsehen macht Spaß, aber man braucht es nicht, um gesund aufzuwachsen."},
+  {pic:"🪙", text:"Kein Taschengeld",            zone:"nichtarm", info:"Taschengeld ist schön, aber nicht alle Familien geben es. Das allein bedeutet nicht Armut."},
+  {pic:"🚲", text:"Kein Fahrrad",                zone:"nichtarm", info:"Ein Fahrrad ist toll, aber man kann auch zu Fuß gehen oder mit dem Bus fahren."},
+  {pic:"🌐", text:"Kein Internet zu Hause",      zone:"nichtarm", info:"Internet ist praktisch, aber kein Grundbedürfnis. Oft kann man es in der Schule oder Bücherei nutzen."}
+];
+
+const $ = id => document.getElementById(id);
+const stage = $("stage");
+const zones = {arm:$("zoneArm"), nichtarm:$("zoneOk")};
+const lists = {arm:$("listArm"), nichtarm:$("listOk")};
+
+let deck = [], current = null, cardEl = null, tries = 0, score = 0, done = 0, firstTry = 0;
+let locked = false, fbTimer = null;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- Spielablauf ---------- */
+function startGame(){
+  deck = shuffle([...CARDS]);
+  score = 0; done = 0; firstTry = 0;
+  lists.arm.innerHTML = ""; lists.nichtarm.innerHTML = "";
+  if(cardEl) cardEl.remove();
+  hideFeedback();
+  updateUI();
+  nextCard();
+}
+
+function nextCard(){
+  hideFeedback();
+  if(cardEl){ cardEl.remove(); cardEl = null; }
+  if(deck.length === 0){ setTimeout(showEnd, 300); return; }
+  current = deck.shift(); tries = 0; locked = false;
+  cardEl = document.createElement("div");
+  cardEl.className = "card appear";
+  cardEl.innerHTML = `<div class="pic">${current.pic}<span class="no">❌</span></div><div class="label">${current.text}</div>`;
+  stage.appendChild(cardEl);
+  attachDrag(cardEl);
+  setTimeout(()=>cardEl && cardEl.classList.remove("appear"), 600);
+}
+
+function updateUI(){
+  $("score").textContent = score;
+  const total = CARDS.length, open = total - done;
+  $("progressBar").style.width = (done/total*100) + "%";
+  $("progressText").textContent = open === 0 ? "Alle Karten geschafft!" :
+    `Noch ${open} ${open===1?"Karte":"Karten"} offen (${done} von ${total})`;
+}
+
+/* ---------- Drag & Drop (Maus, Touch, Stift) ---------- */
+function attachDrag(el){
+  let sx, sy, moved=false, pid=null;
+  el.addEventListener("pointerdown", e=>{
+    if(locked) return;
+    pid = e.pointerId; el.setPointerCapture(pid);
+    sx = e.clientX; sy = e.clientY; moved = false;
+    el.classList.remove("returning","shake");
+  });
+  el.addEventListener("pointermove", e=>{
+    if(e.pointerId !== pid) return;
+    const dx = e.clientX-sx, dy = e.clientY-sy;
+    if(!moved && Math.hypot(dx,dy) < 8) return;
+    moved = true; el.classList.add("dragging");
+    el.style.transform = `translate(${dx}px,${dy}px) rotate(${Math.max(-10,Math.min(10,dx/30))}deg)`;
+    highlight(zoneAt(e.clientX,e.clientY));
+  });
+  const end = e=>{
+    if(e.pointerId !== pid) return;
+    pid = null; highlight(null);
+    if(!moved) return;
+    el.classList.remove("dragging");
+    const z = zoneAt(e.clientX,e.clientY);
+    if(z) check(z.dataset.zone); else flyBack(false);
+  };
+  el.addEventListener("pointerup", end);
+  el.addEventListener("pointercancel", end);
+}
+function zoneAt(x,y){
+  for(const z of Object.values(zones)){
+    const r = z.getBoundingClientRect();
+    if(x>=r.left && x<=r.right && y>=r.top && y<=r.bottom) return z;
+  }
+  return null;
+}
+function highlight(z){ Object.values(zones).forEach(zz=>zz.classList.toggle("hover", zz===z)); }
+
+/* Tippen auf eine Spalte = Karte dorthin legen */
+Object.values(zones).forEach(z=>z.addEventListener("click", ()=>{
+  if(!cardEl || locked) return;
+  check(z.dataset.zone);
+}));
+
+/* ---------- Auswertung ---------- */
+function check(zoneKey){
+  if(locked) return;
+  const z = zones[zoneKey];
+  if(current.zone === zoneKey){
+    locked = true;
+    const pts = tries === 0 ? 10 : 5;
+    if(tries === 0) firstTry++;
+    score += pts; done++;
+    // Karte "fliegt" in die Spalte
+    const cr = cardEl.getBoundingClientRect(), zr = z.getBoundingClientRect();
+    const dx = zr.left + zr.width/2 - (cr.left + cr.width/2);
+    const dy = zr.top + zr.height/3 - (cr.top + cr.height/2);
+    cardEl.classList.add("gone");
+    cardEl.style.transform = `translate(${dx}px,${dy}px) scale(.2)`;
+    setTimeout(()=>{
+      const m = document.createElement("div");
+      m.className = "mini";
+      m.innerHTML = `<span class="e">${current.pic}</span>${current.text}`;
+      lists[zoneKey].appendChild(m);
+      m.scrollIntoView({block:"nearest"});
+      if(cardEl){ cardEl.remove(); cardEl = null; }
+    }, 330);
+    z.classList.remove("flash-right"); void z.offsetWidth; z.classList.add("flash-right");
+    const sb = $("scoreBox"); sb.classList.remove("bump"); void sb.offsetWidth; sb.classList.add("bump");
+    showFeedback(true, `Richtig! +${pts} Punkte`, current.info);
+    confetti(16);
+    updateUI();
+  } else {
+    tries++;
+    z.classList.remove("flash-wrong"); void z.offsetWidth; z.classList.add("flash-wrong");
+    flyBack(true);
+    showFeedback(false, "Leider nicht richtig.", "Die Karte springt zurück. Überlegt noch einmal: Braucht ein Kind das unbedingt?");
+  }
+}
+
+function flyBack(shake){
+  if(!cardEl) return;
+  const el = cardEl;
+  el.classList.add("returning");
+  el.style.transform = "translate(0,0)";
+  setTimeout(()=>{
+    el.classList.remove("returning"); el.style.transform = "";
+    if(shake){ el.classList.add("shake"); setTimeout(()=>el.classList.remove("shake"), 500); }
+  }, 460);
+}
+
+/* ---------- Rückmeldung ---------- */
+function showFeedback(ok, title, text){
+  const fb = $("feedback");
+  fb.classList.toggle("wrong", !ok);
+  $("fbIcon").textContent = ok ? "✅" : "↩️";
+  $("fbTitle").textContent = title;
+  $("fbText").textContent = text;
+  fb.classList.add("show");
+  clearTimeout(fbTimer);
+  if(!ok) fbTimer = setTimeout(hideFeedback, 3500);
+}
+function hideFeedback(){ $("feedback").classList.remove("show"); }
+
+function confetti(n, colors=["#2e9d5b","#7bc96f","#f1c40f","#c0392b","#2f7de1"]){
+  for(let i=0;i<n;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animationDuration = (1.4+Math.random()*1.6) + "s";
+    c.style.animationDelay = (Math.random()*.4) + "s";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3600);
+  }
+}
+
+/* ---------- Ende ---------- */
+function showEnd(){
+  const total = CARDS.length, max = total*10;
+  const ratio = score/max;
+  $("stars").textContent = ratio >= .9 ? "⭐⭐⭐" : ratio >= .65 ? "⭐⭐" : "⭐";
+  $("endText").innerHTML = `Ihr habt <b>${score} von ${max} Punkten</b> geschafft.<br>${firstTry} von ${total} Karten waren gleich beim ersten Versuch richtig.`;
+  $("endOverlay").classList.remove("hidden");
+  confetti(120);
+}
+
+/* ---------- Knöpfe ---------- */
+$("btnNext").addEventListener("click", nextCard);
+$("btnStart").addEventListener("click", ()=>{
+  $("startOverlay").classList.add("hidden");
+  if(!current) startGame();
+});
+$("btnRules").addEventListener("click", ()=>{
+  $("btnStart").textContent = "Weiter spielen";
+  $("startOverlay").classList.remove("hidden");
+});
+$("btnRestart").addEventListener("click", ()=>{
+  const b = $("btnRestart");
+  if(done > 0 && !b.dataset.armed){
+    b.dataset.armed = "1"; b.textContent = "Sicher? Nochmal klicken";
+    setTimeout(()=>{ delete b.dataset.armed; b.textContent = "↺ Neu starten"; }, 3000);
+    return;
+  }
+  delete b.dataset.armed; b.textContent = "↺ Neu starten";
+  startGame();
+});
+$("btnAgain").addEventListener("click", ()=>{ $("endOverlay").classList.add("hidden"); startGame(); });
+document.addEventListener("keydown", e=>{
+  if((e.key==="Enter" || e.key===" ") && $("feedback").classList.contains("show") && !$("feedback").classList.contains("wrong")){
+    e.preventDefault(); nextCard();
+  }
+});
+
+updateUI();
+</script>
+</body>
+</html>
