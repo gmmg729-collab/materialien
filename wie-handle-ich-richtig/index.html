@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wie handle ich richtig? – Bildergalerie mit Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fdf8ef;--card:#fff;--ink:#2b2a33;--muted:#6b6875;--line:#e9e1d2;--accent:#e8743b;
+        --good:#2e9d5b;--goodbg:#e6f6ec;--bad:#d2463c;--badbg:#fde9e7;--sky:#3d7bd9}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Andika",system-ui,sans-serif;font-size:19px;line-height:1.45}
+  .wrap{max-width:760px;margin:0 auto;padding:20px 18px 40px;min-height:100vh;display:flex;flex-direction:column}
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .top h1{font-size:20px;margin:0;flex:1}
+  .bar{height:12px;background:var(--line);border-radius:999px;overflow:hidden;margin-bottom:18px}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:999px;transition:width .35s}
+  .card{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:22px;flex:1;animation:in .3s ease}
+  @keyframes in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+  .tag{display:inline-block;background:var(--accent);color:#fff;font-weight:700;border-radius:999px;padding:3px 12px;font-size:15px}
+  h2{margin:8px 0 12px;font-size:28px}
+  img.big{display:block;width:100%;border-radius:16px;border:2px solid var(--line);margin:0 0 14px}
+  img.small{display:block;width:100%;max-width:340px;margin:0 auto 14px;border-radius:14px;border:2px solid var(--line)}
+  .situation{background:#f6f2ea;border-radius:14px;padding:12px 16px;margin:0 0 16px}
+  .situation b{color:var(--accent)}
+  .dialog{margin:6px 0 0;padding:0;list-style:none}
+  .q{font-weight:700;color:var(--muted);font-size:17px;margin:0 0 8px;text-align:center}
+  .opt{border:3px solid var(--line);border-radius:18px;padding:18px;font-size:22px;text-align:center;margin-bottom:16px;transition:background .2s,border-color .2s}
+  .opt.right{border-color:var(--good);background:var(--goodbg)}
+  .opt.wrong{border-color:var(--bad);background:var(--badbg)}
+  .btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  button{font:inherit;font-weight:700;cursor:pointer}
+  .vote{font-size:22px;border-radius:18px;border:3px solid var(--line);background:#fff;padding:12px 24px;min-height:60px;min-width:170px}
+  .vote:hover{border-color:var(--sky)}
+  .fb{font-size:19px;text-align:center;margin:4px 0 14px}
+  .fb strong{display:block;font-size:22px;margin-bottom:4px}
+  .fb.ok strong{color:var(--good)} .fb.no strong{color:var(--bad)}
+  .next{display:block;margin:10px auto 0;font-size:20px;background:var(--accent);color:#fff;border:0;border-radius:16px;padding:12px 30px;min-height:56px}
+  .counter{text-align:center;color:var(--muted);font-size:16px;margin-bottom:6px}
+  .stars{font-size:30px;letter-spacing:4px;text-align:center}
+  .merke{background:#fff2cc;border-radius:16px;padding:14px 18px;font-size:20px;margin:16px 0}
+  .center{text-align:center}
+  .scorelist{list-style:none;padding:0;margin:12px 0}
+  .scorelist li{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0}
+  .zoomable{cursor:zoom-in}
+  .hint{text-align:center;color:var(--muted);font-size:15px;margin:-8px 0 12px}
+  #lb{position:fixed;inset:0;background:rgba(20,18,25,.88);display:none;align-items:center;justify-content:center;z-index:50;cursor:zoom-out;padding:16px}
+  #lb.open{display:flex}
+  #lb img{max-width:100%;max-height:100%;width:auto;height:100%;object-fit:contain;border-radius:12px;background:#fff}
+  #lb button{position:absolute;top:14px;right:14px;font-size:22px;background:#fff;border:0;border-radius:999px;width:48px;height:48px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Wie handle ich richtig?</h1></div>
+  <div class="bar"><i id="bar"></i></div>
+  <div id="stage"></div>
+</div>
+<div id="lb" role="dialog" aria-label="Bild groß"><img alt=""><button type="button" aria-label="Schließen">✕</button></div>
+<script>
+const SCENES = [
+  {
+    id:"ausflug", nr:1, title:"Der Ausflug", img:"img/szene1.png", who:"Emma",
+    situation:"Emma und Ben stehen in der Pause auf dem Schulhof. Die Klasse fährt bald ins Museum.",
+    dialog:[["Emma","Ich freu mich schon so auf den Ausflug morgen! Ich liebe Dinosaurier!!"],["Ben","Hm … ich komme morgen nicht mit."],["Emma","Hä … warum das denn nicht?"]],
+    options:[
+      {t:"Emma ruft laut: „Was? Habt ihr etwa kein Geld?“ – so, dass alle es hören.", ok:false,
+       why:"So wird Ben vor allen bloßgestellt. Er schämt sich und fühlt sich noch mehr ausgeschlossen."},
+      {t:"Emma fragt leise: „Ist alles okay? Du musst es mir nicht sagen, wenn du nicht willst.“", ok:true,
+       why:"Emma zeigt, dass sie sich um Ben kümmert – und lässt ihm trotzdem Zeit und Ruhe."},
+      {t:"Emma erzählt danach ganz lange, wie toll der Ausflug war, und sagt: „Schade, dass du nicht dabei warst!“", ok:false,
+       why:"Das macht Ben noch trauriger. Er merkt nur, was er verpasst hat."},
+      {t:"Emma schlägt vor, in der Pause zusammen ein Dino-Buch anzuschauen – und fragt die Lehrkraft, ob die Schule helfen kann.", ok:true,
+       why:"Emma lädt Ben ein und sucht Hilfe bei Erwachsenen. So kann vielleicht die ganze Klasse mitfahren."}
+    ]
+  },
+  {
+    id:"turnschuhe", nr:2, title:"Die Turnschuhe", img:"img/szene2.png", who:"Tim",
+    situation:"Die Kinder ziehen sich im Sportunterricht um. Tim zeigt stolz seine neuen Schuhe. Elias wird still.",
+    dialog:[["Tim","Boah, meine neuen Schuhe sind so cool! Die haben sogar Dämpfung!"],["Elias","Ich hab die alten von meinem Bruder bekommen."],["Tim","Hast du nicht viel kleinere Füße?"]],
+    options:[
+      {t:"Tim lacht und ruft: „Guckt mal, Elias hat Clownschuhe an!“", ok:false,
+       why:"Auslachen tut weh. Elias kann nichts dafür, welche Schuhe er hat."},
+      {t:"Tim sagt: „Egal welche Schuhe – Hauptsache, wir haben Spaß!“ und wählt Elias in sein Team.", ok:true,
+       why:"Tim zeigt: Schuhe sind nicht wichtig. Wichtig ist, dass alle mitmachen dürfen."},
+      {t:"Tim sagt: „Mit solchen Schuhen bist du eh langsam. Du kommst nicht in mein Team.“", ok:false,
+       why:"Das schließt Elias aus. Wie gut jemand spielt, hängt nicht von teuren Schuhen ab."},
+      {t:"Tim merkt, dass Elias still wird. Er hört auf anzugeben und sagt: „Sorry, das war doof von mir.“", ok:true,
+       why:"Tim achtet auf Elias' Gefühle und entschuldigt sich. Das ist mutig und fair."}
+    ]
+  },
+  {
+    id:"ferien", nr:3, title:"Die Ferien", img:"img/szene3.png", who:"Mira",
+    situation:"Nach den Ferien sitzen Mira und Yusuf nebeneinander und erzählen sich ihre Erlebnisse. Yusuf wirkt traurig.",
+    dialog:[["Mira","Ich war mit meiner Familie am Meer! Wir haben Muscheln gesammelt."],["Yusuf","Das klingt richtig cool! Ich war nur zu Hause."],["Mira","Und was hast du da so gemacht?"]],
+    options:[
+      {t:"Mira fragt neugierig: „Was war dein schönster Tag zu Hause?“ – und hört richtig zu.", ok:true,
+       why:"Auch Ferien zu Hause können schön sein. Mira zeigt, dass Yusufs Erlebnisse genauso wichtig sind."},
+      {t:"Mira sagt: „Nur zu Hause? Wie langweilig! Dann hast du ja gar nichts erlebt.“", ok:false,
+       why:"Das wertet Yusuf ab. Er fühlt sich schlecht, obwohl er nichts falsch gemacht hat."},
+      {t:"Mira schenkt Yusuf eine Muschel und fragt: „Wollen wir am Wochenende zusammen auf den Spielplatz?“", ok:true,
+       why:"Mira teilt etwas Schönes und lädt Yusuf ein. So erleben sie bald etwas zusammen."},
+      {t:"Mira zeigt immer weiter Fotos vom Meer und merkt nicht, dass Yusuf traurig ist.", ok:false,
+       why:"Mira achtet nur auf sich. Ein guter Freund merkt, wie es dem anderen geht."}
+    ]
+  },
+  {
+    id:"stifte", nr:4, title:"Die Stifte", img:"img/szene4.png", who:"Noah",
+    situation:"Im Kunstunterricht holt Noah seine neuen Stifte raus. Aylin zögert, weil ihre kaum noch malen.",
+    dialog:[["Aylin","Kann ich mir vielleicht einen Stift von dir leihen? Meiner malt nicht mehr."],["Noah","Hm … ja, klar. Aber kaufen deine Eltern dir denn keine neuen Stifte?"],["Aylin","Ehm, doch klar, aber …"]],
+    options:[
+      {t:"Noah sagt: „Nee, die sind neu. Die machst du mir nur kaputt.“", ok:false,
+       why:"So muss Aylin ohne Farben malen und fühlt sich schlecht, weil sie gefragt hat."},
+      {t:"Noah legt seine Stifte in die Mitte: „Klar! Nimm dir, welche Farben du brauchst.“", ok:true,
+       why:"Teilen ist freundlich. Aylin muss sich nicht schämen und kann einfach mitmalen."},
+      {t:"Noah stellt keine Fragen mehr über Aylins Eltern und sagt: „Wollen wir zusammen malen?“", ok:true,
+       why:"Noah merkt, dass die Frage unangenehm war. Er hört auf nachzubohren und lädt Aylin ein."},
+      {t:"Noah erzählt den anderen am Tisch: „Aylin hat nicht mal richtige Stifte.“", ok:false,
+       why:"Das stellt Aylin vor allen bloß. Über andere zu tuscheln verletzt."}
+    ]
+  }
+];
+
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+let steps=[], pos=0, score={};
+function build(){
+  steps=[{type:"start"}]; score={};
+  SCENES.forEach(s=>{
+    score[s.id]=0;
+    steps.push({type:"scene",s});
+    shuffle(s.options).forEach((o,i)=>steps.push({type:"opt",s,o,i}));
+  });
+  steps.push({type:"end"}); pos=0; show();
+}
+function dialogHTML(s){return `<div class="situation"><b>Situation:</b> ${s.situation}<ul class="dialog">${s.dialog.map(([w,t])=>`<li><b>${w}:</b> „${t}“</li>`).join("")}</ul></div>`;}
+function go(){pos++;show();window.scrollTo({top:0});}
+function show(){
+  const st=steps[pos], stage=document.getElementById("stage");
+  document.getElementById("bar").style.width=(pos/(steps.length-1)*100)+"%";
+  let h="";
+  if(st.type==="start"){
+    h=`<div class="card center"><h2>Wie handle ich richtig?</h2>
+      <p>Du siehst gleich 4 Bilder. Schau dir jedes Bild genau an und lies, was passiert.</p>
+      <p>Danach kommen nacheinander <b>4 Ideen</b>, was man tun könnte. Entscheide bei jeder Idee:<br><b>👍 Gut</b> oder <b>👎 Nicht gut</b>?</p>
+      <p>Tipp: Bei jedem Bild sind <b>2 Ideen gut</b> und <b>2 nicht gut</b>.</p>
+      <button class="next" id="nx">Los geht's! ▶</button></div>`;
+  } else if(st.type==="scene"){
+    const s=st.s;
+    h=`<div class="card"><span class="tag">Bild ${s.nr} von 4</span><h2>${s.title}</h2>
+      <img class="big zoomable" src="${s.img}" alt="Comic zu Szene ${s.nr}: ${s.title}">
+      <p class="hint">🔍 Tippe auf das Bild, um es groß zu sehen.</p>
+      ${dialogHTML(s)}
+      <button class="next" id="nx">Was könnte ${s.who} tun? ▶</button></div>`;
+  } else if(st.type==="opt"){
+    const s=st.s,o=st.o;
+    h=`<div class="card"><span class="tag">Bild ${s.nr}: ${s.title}</span>
+      <div class="counter">Idee ${st.i+1} von 4</div>
+      <img class="small zoomable" src="${s.img}" alt="Comic zu Szene ${s.nr}">
+      <p class="q">Was könnte ${s.who} tun?</p>
+      <div class="opt" id="opt">${o.t}</div>
+      <div id="act"><div class="btns"><button class="vote" data-v="1">👍 Gut</button><button class="vote" data-v="0">👎 Nicht gut</button></div></div></div>`;
+  } else {
+    const sum=Object.values(score).reduce((a,b)=>a+b,0);
+    h=`<div class="card center"><h2>Geschafft! 🎉</h2>
+      <p style="font-size:24px"><b>Du hast ${sum} von 16 richtig!</b> ${sum>=14?"🏆":sum>=10?"👏":"💪"}</p>
+      <ul class="scorelist">${SCENES.map(s=>`<li><span>${s.nr}. ${s.title}</span><span>${"⭐".repeat(score[s.id])}${"☆".repeat(4-score[s.id])}</span></li>`).join("")}</ul>
+      <div class="merke"><b>Merke:</b> Ich mache mich nicht lustig, stelle niemanden bloß und lasse niemanden allein.<br>Ich <b>frage nach</b>, <b>höre zu</b>, <b>teile</b> und <b>lade ein</b>.</div>
+      <button class="next" id="again">🔄 Nochmal spielen</button></div>`;
+  }
+  stage.innerHTML=h;
+  stage.querySelectorAll(".zoomable").forEach(im=>im.onclick=()=>openLB(im.src,im.alt));
+  const nx=document.getElementById("nx"); if(nx) nx.onclick=go;
+  const ag=document.getElementById("again"); if(ag) ag.onclick=()=>{build();window.scrollTo({top:0});};
+  if(st.type==="opt"){
+    stage.querySelectorAll(".vote").forEach(b=>b.onclick=()=>{
+      const saidGood=b.dataset.v==="1", o=st.o, correct=saidGood===o.ok;
+      if(correct) score[st.s.id]++;
+      document.getElementById("opt").classList.add(correct?"right":"wrong");
+      const verdict=correct?(o.ok?"Richtig! Das ist eine gute Idee. 👍":"Richtig! Das ist keine gute Idee. 👎")
+                           :(o.ok?"Nicht ganz – das ist eigentlich eine gute Idee.":"Nicht ganz – das ist keine gute Idee.");
+      const last=st.i===3, nextIsEnd=steps[pos+1].type==="end";
+      let extra="";
+      if(last){const n=score[st.s.id];extra=`<div class="stars">${"⭐".repeat(n)}${"☆".repeat(4-n)}</div><p class="center">${n} von 4 richtig bei „${st.s.title}“</p>`;}
+      document.getElementById("act").innerHTML=`<div class="fb ${correct?"ok":"no"}"><strong>${verdict}</strong>${o.why}</div>${extra}
+        <button class="next" id="nx">${last?(nextIsEnd?"Zum Ergebnis ▶":"Nächstes Bild ▶"):"Nächste Idee ▶"}</button>`;
+      document.getElementById("nx").onclick=go;
+    });
+  }
+}
+const lb=document.getElementById("lb");
+function openLB(src,alt){const i=lb.querySelector("img");i.src=src;i.alt=alt;lb.classList.add("open");}
+function closeLB(){lb.classList.remove("open");}
+lb.onclick=closeLB;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLB();});
+build();
+</script>
+</body>
+</html>
