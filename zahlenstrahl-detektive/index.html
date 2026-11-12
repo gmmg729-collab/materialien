@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zahlenstrahl-Detektive</title>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdf8ec; --card:#ffffff; --ink:#2b2a33; --muted:#6b6878;
+    --flag:#ffd84d; --flagEdge:#c9a300; --ok:#2e9e5b; --okBg:#e3f6ea;
+    --bad:#e0573a; --badBg:#fdece7; --warn:#e89a14; --accent:#3a6fd8; --accentBg:#e6eefc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Andika",system-ui,sans-serif;font-size:18px;line-height:1.4}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 40px}
+  h1{margin:0 0 4px;font-size:30px}
+  .sub{margin:0 0 18px;color:var(--muted)}
+  .controls{display:flex;flex-wrap:wrap;gap:14px 28px;margin-bottom:16px}
+  .group{display:flex;flex-direction:column;gap:6px}
+  .group > span{font-size:14px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .seg{display:flex;flex-wrap:wrap;gap:6px}
+  .seg button{font:inherit;font-size:16px;border:2px solid #d9d3c2;background:#fff;color:var(--ink);padding:7px 14px;border-radius:999px;cursor:pointer}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+  .card{background:var(--card);border-radius:20px;box-shadow:0 2px 0 #eadfc3,0 8px 24px rgba(80,60,0,.07);padding:22px 22px 18px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .task{font-size:24px;min-height:44px}
+  .task .num{display:inline-block;font-size:34px;font-weight:700;background:var(--accentBg);color:var(--accent);padding:0 14px;border-radius:12px;margin:0 4px;white-space:nowrap}
+  .task .fl{display:inline-block;background:var(--flag);border:2px solid var(--flagEdge);border-radius:7px;padding:0 10px;font-weight:700;margin:0 4px}
+  .progress{font-size:18px;color:var(--muted);white-space:nowrap}
+  .stars{letter-spacing:2px}
+  .scroller{overflow-x:auto;margin:10px -8px 0;padding:0 8px}
+  svg{display:block;width:100%;min-width:760px;height:auto;touch-action:manipulation;user-select:none}
+  .axis{stroke:var(--ink);stroke-width:3;stroke-linecap:round}
+  .tk{stroke:var(--ink);stroke-width:1.4}
+  .tk5{stroke:var(--ink);stroke-width:2}
+  .tk10{stroke:var(--ink);stroke-width:3}
+  .lab{font-family:"Andika",sans-serif;font-size:15px;font-weight:700;fill:var(--ink);text-anchor:middle}
+  .flagBox{fill:var(--flag);stroke:var(--flagEdge);stroke-width:2}
+  .flagStick{stroke:var(--ink);stroke-width:2}
+  .flagTxt{font-family:"Andika",sans-serif;font-size:20px;font-weight:700;text-anchor:middle;fill:var(--ink)}
+  .flagVal{font-family:"Andika",sans-serif;font-size:12px;text-anchor:middle;fill:var(--muted)}
+  .ghost{stroke:var(--accent);stroke-width:3;stroke-dasharray:5 4;opacity:.7}
+  .hit{fill:transparent;cursor:pointer}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}
+  input.ans{font:inherit;font-size:28px;width:200px;padding:6px 12px;border:3px solid #d9d3c2;border-radius:12px;text-align:center}
+  input.ans:focus{outline:none;border-color:var(--accent)}
+  .btn{font:inherit;font-size:19px;font-weight:700;border:none;border-radius:12px;padding:10px 20px;cursor:pointer;background:var(--accent);color:#fff}
+  .btn.ghostbtn{background:#fff;color:var(--accent);border:2px solid var(--accent)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .feedback{min-height:56px;margin-top:12px;padding:10px 14px;border-radius:12px;font-size:20px;display:none}
+  .feedback.ok{display:block;background:var(--okBg);color:#1d6b3d}
+  .feedback.bad{display:block;background:var(--badBg);color:#9b3017}
+  .feedback.info{display:block;background:var(--accentBg);color:#244b99}
+  .hintbox{font-size:16px;color:var(--muted);margin-top:6px}
+  .summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .summary span{background:#fff;border:2px solid #e3dccb;border-radius:10px;padding:2px 10px;font-size:18px;color:var(--ink)}
+  details.teacher{margin-top:18px;background:#fff;border-radius:16px;padding:12px 18px;border:2px dashed #e3dccb}
+  details.teacher summary{cursor:pointer;font-weight:700}
+  textarea{width:100%;font:inherit;font-size:17px;min-height:70px;padding:8px 10px;border:2px solid #d9d3c2;border-radius:10px;margin-top:8px}
+  .small{font-size:15px;color:var(--muted)}
+  .tmsg{font-size:15px;margin-top:6px;min-height:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔍 Zahlenstrahl-Detektive</h1>
+  <p class="sub">Finde die Zahlen auf dem Zahlenstrahl – oder lies ab, welche Zahl bei der Fahne steht.</p>
+
+  <div class="controls">
+    <div class="group">
+      <span>Zahlenstrahl</span>
+      <div class="seg" id="rangeSeg">
+        <button data-max="1000">bis 1 000</button>
+        <button data-max="10000" class="on">bis 10 000</button>
+        <button data-max="100000">bis 100 000</button>
+        <button data-max="1000000">bis 1 000 000</button>
+      </div>
+    </div>
+    <div class="group">
+      <span>Spiel</span>
+      <div class="seg" id="modeSeg">
+        <button data-mode="find" class="on">📍 Zahl finden</button>
+        <button data-mode="read">👀 Zahl ablesen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="top">
+      <div class="task" id="task"></div>
+      <div class="progress"><span id="prog"></span> &nbsp;<span class="stars" id="stars"></span></div>
+    </div>
+
+    <div class="scroller"><svg id="svg" viewBox="0 0 1000 200" aria-label="Zahlenstrahl"></svg></div>
+
+    <div class="row" id="readRow" style="display:none">
+      <input class="ans" id="ans" inputmode="numeric" autocomplete="off" placeholder="Zahl">
+      <button class="btn" id="check">Prüfen</button>
+    </div>
+
+    <div class="feedback" id="fb"></div>
+
+    <div class="row">
+      <button class="btn" id="next" style="display:none">Weiter ➜</button>
+      <button class="btn ghostbtn" id="hintBtn">💡 Tipp</button>
+      <button class="btn ghostbtn" id="restart">↺ Neu starten</button>
+    </div>
+    <div class="hintbox" id="hint"></div>
+  </div>
+
+  <details class="teacher">
+    <summary>Für Lehrkräfte: eigene Zahlen festlegen</summary>
+    <p class="small">Zahlen durch Komma oder Zeilenumbruch trennen (Punkte und Leerzeichen innerhalb einer Zahl sind erlaubt, z. B. „3.800“ oder „3 800“). Zahlen außerhalb des gewählten Zahlenstrahls werden übersprungen.</p>
+    <textarea id="nums"></textarea>
+    <div class="row">
+      <button class="btn" id="apply">Übernehmen</button>
+      <button class="btn ghostbtn" id="book">Wie im Buch (A–G)</button>
+      <button class="btn ghostbtn" id="rand">🎲 Zufallszahlen</button>
+    </div>
+    <div class="tmsg" id="tmsg"></div>
+  </details>
+</div>
+
+<script>
+(function(){
+  const BOOK = [500, 2400, 3800, 5500, 7100, 8200, 9900]; // Werte für den Zahlenstrahl bis 10 000
+  const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const X0 = 50, X1 = 950, Y = 120;
+  const NS = "http://www.w3.org/2000/svg";
+
+  let max = 10000, mode = "find", custom = false, isBook = true;
+  let numbers = [], idx = 0, attempts = 0, done = false, results = [], tryMark = null, finished = false;
+
+  const $ = id => document.getElementById(id);
+  const svg = $("svg");
+  const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const step = () => max / 100;
+  const xOf = v => X0 + (X1 - X0) * v / max;
+  const bookNums = () => BOOK.map(b => Math.round(b * max / 10000));
+
+  function parseList(txt){
+    return txt.split(/[,;\n]+/).map(s => s.replace(/[\s. ']/g, "")).filter(s => /^\d+$/.test(s)).map(Number);
+  }
+  function randomNums(){
+    const s = new Set();
+    while (s.size < 7) s.add(Math.floor(Math.random() * 99 + 1) * step());
+    return [...s];
+  }
+
+  // ---------- Zeichnen ----------
+  function el(tag, attrs, parent){
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    (parent || svg).appendChild(e);
+    return e;
+  }
+  function flag(v, letter, color, showVal){
+    const x = xOf(v), g = el("g", {});
+    el("line", {x1:x, y1:Y, x2:x, y2:56, class:"flagStick"}, g);
+    const r = el("rect", {x:x-18, y:20, width:36, height:36, rx:6, class:"flagBox"}, g);
+    if (color) { r.style.fill = color.fill; r.style.stroke = color.edge; }
+    const t = el("text", {x:x, y:45, class:"flagTxt"}, g); t.textContent = letter;
+    if (showVal){ const tv = el("text", {x:x, y:14, class:"flagVal"}, g); tv.textContent = fmt(v); }
+  }
+  function marker(v, color){
+    const x = xOf(v);
+    el("circle", {cx:x, cy:Y, r:9, fill:color, stroke:"#fff", "stroke-width":3});
+  }
+
+  function draw(){
+    svg.innerHTML = "";
+    el("line", {x1:X0-12, y1:Y, x2:X1+22, y2:Y, class:"axis"});
+    el("path", {d:`M${X1+22} ${Y} l-12 -7 v14 z`, fill:"#2b2a33"});
+    for (let i = 0; i <= 100; i++){
+      const x = X0 + (X1 - X0) * i / 100;
+      const big = i % 10 === 0, mid = i % 5 === 0;
+      const h = big ? 15 : mid ? 10 : 6;
+      el("line", {x1:x, y1:Y-h, x2:x, y2:Y+h, class: big ? "tk10" : mid ? "tk5" : "tk"});
+      if (big){ const t = el("text", {x:x, y:Y+40, class:"lab"}); t.textContent = fmt(i * step()); }
+    }
+    // bereits erledigte Fahnen
+    results.forEach(r => {
+      if (r.i === idx && !done) return;
+      flag(r.v, r.letter, r.ok ? null : {fill:"#ffe9a8", edge:"#d9b84a"}, finished);
+    });
+
+    const t = numbers[idx];
+    if (!finished){
+      if (mode === "read"){
+        flag(t, LETTERS[idx], done ? {fill:"#bfe9cf", edge:"#2e9e5b"} : {fill:"#ffd84d", edge:"#c9a300"});
+      } else {
+        if (tryMark !== null) marker(tryMark.v, tryMark.color);
+        if (done) flag(t, LETTERS[idx], {fill:"#bfe9cf", edge:"#2e9e5b"});
+      }
+    }
+
+    // Klickfläche
+    if (mode === "find" && !done && !finished){
+      const ghost = el("line", {x1:-50, y1:Y-30, x2:-50, y2:Y+30, class:"ghost"});
+      const hit = el("rect", {x:X0-20, y:0, width:X1-X0+40, height:200, class:"hit"});
+      const toV = ev => {
+        const p = svg.createSVGPoint(); p.x = ev.clientX; p.y = ev.clientY;
+        const sp = p.matrixTransform(svg.getScreenCTM().inverse());
+        let v = Math.round((sp.x - X0) / (X1 - X0) * 100) * step();
+        return Math.max(0, Math.min(max, v));
+      };
+      hit.addEventListener("pointermove", ev => { const x = xOf(toV(ev)); ghost.setAttribute("x1", x); ghost.setAttribute("x2", x); });
+      hit.addEventListener("pointerleave", () => { ghost.setAttribute("x1", -50); ghost.setAttribute("x2", -50); });
+      hit.addEventListener("click", ev => answer(toV(ev)));
+    }
+  }
+
+  // ---------- Spiellogik ----------
+  function setFb(cls, html){ const f = $("fb"); f.className = "feedback " + cls; f.innerHTML = html; }
+
+  function render(){
+    const n = numbers.length;
+    $("prog").textContent = finished ? `${n} von ${n}` : `Aufgabe ${idx + 1} von ${n}`;
+    $("stars").textContent = results.map(r => r.ok ? "⭐" : "☆").join("");
+    $("readRow").style.display = (mode === "read" && !finished) ? "flex" : "none";
+    $("hintBtn").style.display = finished ? "none" : "";
+    if (finished){
+      $("task").innerHTML = "🎉 Geschafft!";
+    } else if (mode === "find"){
+      $("task").innerHTML = `Wo liegt die Zahl <span class="num">${fmt(numbers[idx])}</span>? Tippe auf den Zahlenstrahl.`;
+    } else {
+      $("task").innerHTML = `Welche Zahl steht bei <span class="fl">${LETTERS[idx]}</span>?`;
+    }
+    draw();
+  }
+
+  function start(){
+    idx = 0; attempts = 0; done = false; results = []; tryMark = null; finished = false;
+    $("fb").className = "feedback"; $("next").style.display = "none"; $("hint").textContent = "";
+    $("ans").value = "";
+    if (!numbers.length){ $("task").textContent = "Bitte unten Zahlen eintragen."; svg.innerHTML = ""; return; }
+    render();
+    if (mode === "read") setTimeout(() => $("ans").focus(), 50);
+  }
+
+  function answer(v){
+    if (done || finished) return;
+    const t = numbers[idx], s = step();
+    const diff = Math.abs(v - t);
+    const ok = diff <= s / 2, near = diff <= 2 * s;
+    attempts++;
+    if (ok){
+      done = true; tryMark = mode === "find" ? {v, color:"#2e9e5b"} : null;
+      results.push({i:idx, v:t, letter:LETTERS[idx], ok:true});
+      setFb("ok", (attempts === 1 ? "✅ Super, genau richtig!" : "✅ Jetzt stimmt’s!") + ` <b>${LETTERS[idx]} = ${fmt(t)}</b>`);
+      showNext();
+    } else if (attempts < 2){
+      tryMark = mode === "find" ? {v, color:"#e89a14"} : null;
+      let dir;
+      if (mode === "find") dir = v < t ? "Die Zahl liegt weiter <b>rechts</b> ➡️" : "Die Zahl liegt weiter <b>links</b> ⬅️";
+      else dir = v < t ? "Deine Zahl ist zu <b>klein</b>." : "Deine Zahl ist zu <b>groß</b>.";
+      const pre = mode === "find" ? `Du hast auf <b>${fmt(v)}</b> getippt. ` : "";
+      setFb("bad", (near ? "🤏 Ganz knapp! " : "🤔 Noch nicht. ") + pre + dir + " Versuch es noch einmal!");
+      if (mode === "read"){ $("ans").select(); }
+    } else {
+      done = true; tryMark = mode === "find" ? {v, color:"#e0573a"} : null;
+      results.push({i:idx, v:t, letter:LETTERS[idx], ok:false});
+      const pre = mode === "find" ? `Du hast auf ${fmt(v)} getippt. ` : `Du hast ${fmt(v)} geschrieben. `;
+      setFb("info", `${pre}Die richtige Stelle ist grün markiert: <b>${LETTERS[idx]} = ${fmt(t)}</b>. Schau sie dir genau an!`);
+      showNext();
+    }
+    render();
+  }
+
+  function showNext(){
+    const b = $("next");
+    b.style.display = "";
+    b.textContent = idx < numbers.length - 1 ? "Weiter ➜" : "Ergebnis ansehen ➜";
+    setTimeout(() => b.focus(), 30);
+  }
+
+  function next(){
+    if (idx < numbers.length - 1){
+      idx++; attempts = 0; done = false; tryMark = null;
+      $("fb").className = "feedback"; $("next").style.display = "none"; $("hint").textContent = "";
+      $("ans").value = "";
+      render();
+      if (mode === "read") $("ans").focus();
+    } else {
+      finished = true; $("next").style.display = "none"; $("hint").textContent = "";
+      const okN = results.filter(r => r.ok).length;
+      const list = results.map(r => `<span>${r.ok ? "⭐" : "☆"} ${r.letter} = ${fmt(r.v)}</span>`).join("");
+      let extra = "";
+      if (isBook && max < 1000000){
+        extra = `<p style="margin:10px 0 0">🧐 <b>Was fällt dir auf?</b> Wähle oben den nächsten Zahlenstrahl (bis ${fmt(max * 10)}) und spiele noch einmal. Vergleiche die Zahlen!</p>`;
+      }
+      setFb("ok", `Du hast <b>${okN} von ${numbers.length}</b> Zahlen richtig! <div class="summary">${list}</div>${extra}`);
+      render();
+    }
+  }
+
+  // ---------- Bedienung ----------
+  $("check").addEventListener("click", () => {
+    const raw = $("ans").value.replace(/[\s. ']/g, "");
+    if (!/^\d+$/.test(raw)){ setFb("bad", "Bitte schreibe eine Zahl."); return; }
+    answer(Number(raw));
+  });
+  $("ans").addEventListener("keydown", e => { if (e.key === "Enter"){ done ? next() : $("check").click(); } });
+  $("next").addEventListener("click", next);
+  $("restart").addEventListener("click", start);
+  $("hintBtn").addEventListener("click", () => {
+    $("hint").innerHTML = `💡 Zwischen zwei langen Strichen liegen <b>${fmt(max / 10)}</b>. Ein kleiner Strich bedeutet <b>${fmt(step())}</b>, der mittlere Strich liegt bei der Hälfte (<b>${fmt(max / 20)}</b>).`;
+  });
+
+  function loadNumbers(list, msg){
+    const valid = list.filter(n => n >= 0 && n <= max);
+    const skipped = list.length - valid.length;
+    numbers = valid.slice(0, 26);
+    $("nums").value = list.map(fmt).join(", ");
+    let m = msg || "";
+    if (skipped) m += ` ${skipped} Zahl(en) liegen nicht zwischen 0 und ${fmt(max)} und werden übersprungen.`;
+    if (valid.length > 26) m += " Es werden höchstens 26 Zahlen verwendet (A–Z).";
+    $("tmsg").textContent = m.trim();
+    start();
+  }
+
+  document.querySelectorAll("#rangeSeg button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("#rangeSeg button").forEach(x => x.classList.toggle("on", x === b));
+    max = Number(b.dataset.max);
+    if (!custom) loadNumbers(isBook ? bookNums() : randomNums());
+    else loadNumbers(parseList($("nums").value));
+  }));
+  document.querySelectorAll("#modeSeg button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("#modeSeg button").forEach(x => x.classList.toggle("on", x === b));
+    mode = b.dataset.mode; start();
+  }));
+  $("apply").addEventListener("click", () => {
+    const list = parseList($("nums").value);
+    if (!list.length){ $("tmsg").textContent = "Keine gültigen Zahlen gefunden."; return; }
+    custom = true; isBook = false; loadNumbers(list, "Übernommen ✓");
+  });
+  $("book").addEventListener("click", () => { custom = false; isBook = true; loadNumbers(bookNums(), "Zahlen wie im Buch ✓"); });
+  $("rand").addEventListener("click", () => { custom = false; isBook = false; loadNumbers(randomNums(), "Neue Zufallszahlen ✓"); });
+
+  loadNumbers(bookNums());
+})();
+</script>
+</body>
+</html>
