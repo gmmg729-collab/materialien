@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Blitzlesen</title>
+<style>
+  :root{
+    --ink:#2d2a4a; --pink:#ff5d8f; --orange:#ff9f1c; --yellow:#ffd23f;
+    --green:#22b573; --teal:#2ec4b6; --blue:#3a86ff; --purple:#8338ec; --red:#ef476f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+    background:linear-gradient(160deg,#fff4d6 0%,#ffe6f1 55%,#e3f1ff 100%);overflow:hidden;
+  }
+  body::before,body::after{content:"";position:fixed;border-radius:50%;pointer-events:none;z-index:0;opacity:.45;}
+  body::before{width:260px;height:260px;background:#ffd23f;top:-90px;left:-80px;}
+  body::after{width:320px;height:320px;background:#9ee8e0;bottom:-130px;right:-110px;}
+  .app{
+    position:relative;z-index:1;height:100vh;height:100dvh;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  }
+  button{
+    font:inherit;color:inherit;border:none;cursor:pointer;min-width:44px;min-height:44px;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  }
+  .hidden{display:none !important}
+
+  /* ---------- Start ---------- */
+  #start{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 18px 40px;}
+  .inner{max-width:760px;margin:0 auto;text-align:center;}
+  .title{
+    font-size:clamp(36px,7vw,60px);font-weight:900;margin:8px 0 2px;color:var(--purple);
+    text-shadow:3px 3px 0 #fff,5px 5px 0 rgba(131,56,236,.18);
+  }
+  .subtitle{font-size:clamp(18px,2.6vw,22px);margin:0 0 16px;font-weight:700;}
+  .box{
+    background:#fff;border-radius:28px;padding:16px 20px;margin:0 auto 16px;
+    box-shadow:0 6px 0 rgba(0,0,0,.08);font-size:clamp(17px,2.4vw,20px);line-height:1.5;
+  }
+  .howto{text-align:left}
+  .howto ol{margin:6px 0 0;padding-left:26px}
+  .label{font-weight:900;font-size:20px;margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+  .chip{
+    border-radius:999px;padding:10px 20px;font-size:20px;font-weight:800;min-height:54px;
+    background:#f1ecff;color:var(--purple);box-shadow:0 4px 0 rgba(0,0,0,.1);
+  }
+  .chip.on{background:var(--purple);color:#fff}
+  .chip:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.1)}
+  .rec-big{font-size:26px;font-weight:900;color:var(--orange)}
+  .history{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}
+  .hist{background:#fff6dc;border-radius:16px;padding:6px 12px;font-size:16px;font-weight:700}
+  .startbtn{
+    margin-top:6px;border-radius:999px;padding:16px 46px;font-size:30px;font-weight:900;color:#fff;
+    background:linear-gradient(180deg,#ff7aa5,#ff5d8f);box-shadow:0 8px 0 #c93d6b;min-height:72px;
+  }
+  .startbtn:active{transform:translateY(5px);box-shadow:0 3px 0 #c93d6b}
+  .row{display:flex;justify-content:center;gap:12px;align-items:center;margin-top:16px}
+
+  /* ---------- Spiel ---------- */
+  #game{height:100%;display:flex;flex-direction:column;padding:10px 12px 16px;gap:10px;}
+  .hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+  .spacer{flex:1}
+  .pill{
+    background:#fff;border-radius:999px;padding:8px 16px;font-size:clamp(18px,2.6vw,24px);font-weight:900;
+    box-shadow:0 4px 0 rgba(0,0,0,.1);min-height:50px;display:flex;align-items:center;gap:6px;
+  }
+  .iconbtn{
+    width:54px;height:54px;border-radius:50%;background:#fff;font-size:26px;
+    box-shadow:0 4px 0 rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;
+  }
+  .iconbtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.12)}
+  .bar{height:18px;background:#fff;border-radius:999px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.1)}
+  #barFill{height:100%;width:100%;background:linear-gradient(90deg,#2ec4b6,#3a86ff);border-radius:999px;}
+  #barFill.hurry{background:linear-gradient(90deg,#ff9f1c,#ef476f)}
+  .stage{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+  #wordCard{
+    width:min(92%,680px);height:min(46vh,360px);background:#fff;border-radius:40px;
+    border:6px solid var(--yellow);box-shadow:0 10px 0 rgba(0,0,0,.12);
+    display:flex;align-items:center;justify-content:center;position:relative;
+    transition:border-color .15s, background .15s;
+  }
+  #word{font-weight:900;line-height:1;white-space:nowrap;}
+  #wordCard.in{animation:popIn .22s ease-out}
+  #wordCard.good{border-color:var(--green);background:#e6fbef}
+  #wordCard.bad{border-color:var(--red);background:#ffe8ee;animation:shake .4s ease}
+  @keyframes popIn{from{transform:scale(.85);opacity:.3}to{transform:scale(1);opacity:1}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+  .plus{
+    position:absolute;top:8%;right:10%;font-size:44px;font-weight:900;color:var(--green);
+    animation:floatUp .7s ease-out forwards;pointer-events:none;
+  }
+  @keyframes floatUp{from{transform:translateY(0);opacity:1}to{transform:translateY(-60px);opacity:0}}
+  #feedback{min-height:36px;margin-top:14px;font-size:clamp(18px,2.6vw,24px);font-weight:900;text-align:center}
+  #feedback.good{color:#118a55} #feedback.bad{color:#d62f5c} #feedback.info{color:var(--purple)}
+  .answers{display:flex;gap:14px;justify-content:center}
+  .ans{
+    flex:1;max-width:340px;border-radius:32px;color:#fff;font-weight:900;
+    font-size:clamp(22px,3.6vw,32px);min-height:clamp(96px,16vh,140px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  }
+  .ans .em{font-size:clamp(34px,5vw,46px);line-height:1}
+  .ans.yes{background:linear-gradient(180deg,#3fd08c,#22b573);box-shadow:0 8px 0 #168a56}
+  .ans.no{background:linear-gradient(180deg,#ff7a96,#ef476f);box-shadow:0 8px 0 #b92e50}
+  .ans:active{transform:translateY(5px)}
+  .ans.yes:active{box-shadow:0 3px 0 #168a56} .ans.no:active{box-shadow:0 3px 0 #b92e50}
+
+  /* ---------- Overlays ---------- */
+  .overlay{
+    position:fixed;top:0;left:0;right:0;bottom:0;z-index:5;background:rgba(45,42,74,.45);
+    display:flex;align-items:center;justify-content:center;padding:18px;
+  }
+  #countNum{font-size:min(40vw,220px);font-weight:900;color:#fff;text-shadow:0 8px 0 rgba(0,0,0,.2);animation:popIn .35s ease-out}
+  .panel{
+    background:#fff;border-radius:34px;padding:22px 22px;max-width:520px;width:100%;text-align:center;
+    box-shadow:0 10px 0 rgba(0,0,0,.15);animation:panelIn .45s cubic-bezier(.3,1.6,.5,1);
+    max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  }
+  @keyframes panelIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .panel h2{font-size:30px;margin:4px 0 4px;color:var(--purple)}
+  .score-big{font-size:84px;font-weight:900;color:var(--orange);line-height:1.05}
+  .score-lbl{font-size:20px;font-weight:800;margin-bottom:10px}
+  .stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .stats .pill{background:#f3efff;font-size:19px}
+  .record{font-size:21px;font-weight:900;margin:8px 0;color:#118a55}
+  .mist-title{font-size:18px;font-weight:800;margin:12px 0 6px}
+  .mistakes{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px}
+  .mw{border-radius:14px;padding:6px 12px;font-size:20px;font-weight:800}
+  .mw.real{background:#e6fbef;color:#118a55}
+  .mw.fake{background:#ffe8ee;color:#d62f5c;text-decoration:line-through}
+  .legend{font-size:15px;margin-bottom:12px}
+  .btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .bigbtn{
+    border-radius:999px;padding:12px 24px;font-size:21px;font-weight:900;color:#fff;min-height:58px;
+    box-shadow:0 6px 0 rgba(0,0,0,.2);
+  }
+  .bigbtn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+  .b-green{background:var(--teal)} .b-blue{background:var(--blue)}
+  #confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Start -->
+  <section id="start">
+    <div class="inner">
+      <h1 class="title">⚡ Blitzlesen</h1>
+      <p class="subtitle">Gibt es das Wort – oder ist es ein Quatschwort?</p>
+
+      <div class="box howto">
+        <strong>So geht's:</strong>
+        <ol>
+          <li>Ein Wort erscheint. Lies es schnell!</li>
+          <li>Ist es ein echtes Wort? Tippe <b>✅ Gibt es</b>.</li>
+          <li>Ist es ein erfundenes Quatschwort? Tippe <b>🙃 Gibt es nicht</b>.</li>
+          <li>Jede richtige Antwort = 1 Punkt. Knackst du deinen Rekord? 🏆</li>
+        </ol>
+      </div>
+
+      <div class="box">
+        <div class="label">⏱ Wie lange?</div>
+        <div class="chips" id="timeChips"></div>
+      </div>
+
+      <div class="box">
+        <div class="label">📚 Welche Wörter?</div>
+        <div class="chips" id="levelChips"></div>
+      </div>
+
+      <div class="box">
+        <div class="rec-big" id="recBig"></div>
+        <div class="history" id="history"></div>
+      </div>
+
+      <div class="row">
+        <button class="startbtn" id="startBtn">▶ Los geht's!</button>
+        <button class="iconbtn" id="soundStart" aria-label="Ton an oder aus">🔊</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Spiel -->
+  <section id="game" class="hidden">
+    <div class="hud">
+      <button class="iconbtn" id="homeBtn" aria-label="Spiel abbrechen">🏠</button>
+      <div class="spacer"></div>
+      <div class="pill">⭐ <span id="score">0</span></div>
+      <div class="pill">⏱ <span id="time">60</span></div>
+      <div class="pill">🔥 <span id="streak">0</span></div>
+      <div class="spacer"></div>
+      <button class="iconbtn" id="soundGame" aria-label="Ton an oder aus">🔊</button>
+    </div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="stage">
+      <div id="wordCard"><span id="word"></span></div>
+      <div id="feedback" class="info"></div>
+    </div>
+    <div class="answers">
+      <button class="ans yes" id="yesBtn"><span class="em">✅</span>Gibt es</button>
+      <button class="ans no" id="noBtn"><span class="em">🙃</span>Gibt es nicht</button>
+    </div>
+  </section>
+
+  <!-- Countdown -->
+  <div id="countdown" class="overlay hidden"><div id="countNum">3</div></div>
+
+  <!-- Ergebnis -->
+  <div id="result" class="overlay hidden">
+    <div class="panel">
+      <h2 id="resTitle">Zeit ist um!</h2>
+      <div class="score-big" id="resScore">0</div>
+      <div class="score-lbl">Punkte</div>
+      <div class="stats">
+        <div class="pill">✔ <span id="resRight">0</span>&nbsp;richtig</div>
+        <div class="pill">✘ <span id="resWrong">0</span>&nbsp;falsch</div>
+        <div class="pill">🔥 <span id="resStreak">0</span>&nbsp;Serie</div>
+      </div>
+      <div class="record" id="resRecord"></div>
+      <div id="mistBox">
+        <div class="mist-title">👀 Diese Wörter schaust du dir nochmal an:</div>
+        <div class="mistakes" id="mistakes"></div>
+        <div class="legend"><span class="mw real" style="font-size:15px">echtes Wort</span> &nbsp; <span class="mw fake" style="font-size:15px">Quatschwort</span></div>
+      </div>
+      <div class="btnrow">
+        <button class="bigbtn b-green" id="againBtn">🔁 Nochmal</button>
+        <button class="bigbtn b-blue" id="menuBtn">⚙️ Einstellungen</button>
+      </div>
+    </div>
+  </div>
+</div>
+<canvas id="confetti"></canvas>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------- Wörter ---------- */
+  var WORDS100 = ["der","die","das","den","dem","des","ein","eine","einen","einem","einer",
+    "ich","du","er","sie","es","wir","ihr","mich","mir","dich","dir","ihn","ihm","uns","ihnen",
+    "sich","man","mein","sein","ihre","kein","keine","alle","was","wer",
+    "ist","war","sind","bin","hat","hatte","haben","habe","wird","werden","kann","will","wollte",
+    "muss","sagte","kommt","geht","gibt",
+    "in","im","zu","zum","mit","auf","an","am","von","für","aus","nach","bei","um","vor","über",
+    "unter","durch","bis","und","aber","oder","dass","wenn","als","wie","weil","denn",
+    "nicht","so","auch","noch","nur","dann","schon","da","jetzt","doch","ja","nein","wieder",
+    "hier","mal","immer","ganz","sehr"];
+
+  var EASY = ["der","die","das","und","ich","du","er","sie","es","ist","in","zu","mit","auf",
+    "war","so","ein","wir","ja","da","im","an","am","nein","was","wie","hat","mal","nur","noch"];
+
+  // Erfundene Wörter und Silben (Quatschwörter)
+  // Alle Quatschwörter wurden im Duden geprüft: kein Eintrag.
+  var FAKE_EASY = ["dor","bie","dus","ech","unt","wos","ift","saf","nue","doh","nei","hir","wum",
+    "wiw","ols","mif","rek","zun","aim","eim","lof","nap","sib","rel","wak","lur","fim","gub",
+    "mel","pir","dok","ekl","mub","zek","pum","dib","rof","lep"];
+  var FAKE_HARD = FAKE_EASY.concat(["auv","sond","imer","schom","guf","fül","durh","sint",
+    "dier","ganc","sagde","hapen","komt","gip","ihen","nihct","abr","wnen","jezt","imm",
+    "schno","wiedr","seer","odder","nim","dnan","uter","dorch","kan","wolte"]);
+
+  var FAKE_RATE = 0.35; // Anteil der Quatschwörter
+
+  var TIMES = [{s:30,l:"30 Sek."},{s:60,l:"1 Min."},{s:90,l:"1½ Min."},{s:120,l:"2 Min."}];
+  var LEVELS = [{id:"leicht",l:"🐣 Leicht · 30 Wörter"},{id:"alle",l:"🦁 Profi · 100 Wörter"}];
+
+  var PRAISE_STREAK = ["🔥 Super-Serie!","🚀 Du bist ein Blitz!","🌟 Wahnsinn!","💪 Stark gelesen!"];
+  var STORE = "wort-blitz-v1";
+
+  /* ---------- Helfer ---------- */
+  function $(id){return document.getElementById(id);}
+  function pick(a){return a[Math.floor(Math.random()*a.length)];}
+  function load(){try{return JSON.parse(localStorage.getItem(STORE))||{};}catch(e){return {};}}
+  function save(d){try{localStorage.setItem(STORE,JSON.stringify(d));}catch(e){}}
+
+  var data = load();
+  data.rec = data.rec || {};
+  var settings = data.settings || {time:60, level:"leicht"};
+
+  /* ---------- Sound ---------- */
+  var soundOn = true, ac = null;
+  function unlockAudio(){
+    if(!soundOn) return;
+    try{
+      if(!ac){var C=window.AudioContext||window.webkitAudioContext; if(!C) return; ac=new C();}
+      if(ac.state==="suspended") ac.resume();
+    }catch(e){}
+  }
+  function tone(f,start,dur,type,vol){
+    if(!soundOn||!ac) return;
+    try{
+      var t=ac.currentTime+start,o=ac.createOscillator(),g=ac.createGain();
+      o.type=type||"sine"; o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(vol||0.2,t+0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+dur+0.05);
+    }catch(e){}
+  }
+  function sGood(){tone(784,0,0.1,"triangle",0.2);tone(1047,0.07,0.14,"triangle",0.2);}
+  function sBad(){tone(300,0,0.15,"sine",0.2);tone(220,0.13,0.25,"sine",0.2);}
+  function sTick(){tone(1000,0,0.05,"square",0.05);}
+  function sCount(hi){tone(hi?880:520,0,hi?0.35:0.18,"triangle",0.2);}
+  function sStreak(){[659,784,988,1319].forEach(function(f,i){tone(f,i*0.07,0.14,"triangle",0.18);});}
+  function sEnd(){tone(523,0,0.18,"triangle",0.2);tone(392,0.18,0.3,"triangle",0.2);}
+  function sWin(){
+    [523,659,784,1047].forEach(function(f,i){tone(f,i*0.12,0.2,"triangle",0.22);});
+    [523,659,784,1047].forEach(function(f){tone(f,0.55,0.7,"triangle",0.13);});
+  }
+  function setSound(on){
+    soundOn=on;
+    $("soundStart").textContent=on?"🔊":"🔇";
+    $("soundGame").textContent=on?"🔊":"🔇";
+    if(on){unlockAudio();tone(880,0,0.1,"triangle",0.12);}
+  }
+  $("soundStart").addEventListener("click",function(){setSound(!soundOn);});
+  $("soundGame").addEventListener("click",function(){setSound(!soundOn);});
+
+  /* ---------- Konfetti ---------- */
+  var cv=$("confetti"),cx=cv.getContext("2d"),parts=[],raf=null;
+  var CCOL=["#ff5d8f","#ff9f1c","#ffd23f","#2ec4b6","#3a86ff","#8338ec"];
+  function sizeCanvas(){
+    var d=window.devicePixelRatio||1;
+    cv.width=window.innerWidth*d; cv.height=window.innerHeight*d; cx.setTransform(d,0,0,d,0,0);
+  }
+  function burst(x,y,n,p){
+    for(var i=0;i<n;i++) parts.push({x:x,y:y,vx:(Math.random()-0.5)*p,vy:-Math.random()*p*0.8-2,
+      s:6+Math.random()*7,r:Math.random()*6,vr:(Math.random()-0.5)*0.35,c:pick(CCOL),
+      life:80+Math.random()*60,round:Math.random()<0.4});
+    if(!raf) raf=requestAnimationFrame(tickC);
+  }
+  function tickC(){
+    var W=window.innerWidth,H=window.innerHeight; cx.clearRect(0,0,W,H);
+    parts=parts.filter(function(p){return p.life>0&&p.y<H+40;});
+    parts.forEach(function(p){
+      p.vy+=0.25;p.vx*=0.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.life--;
+      cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.globalAlpha=Math.min(1,p.life/30);cx.fillStyle=p.c;
+      if(p.round){cx.beginPath();cx.arc(0,0,p.s/2,0,Math.PI*2);cx.fill();}else cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);
+      cx.restore();
+    });
+    if(parts.length) raf=requestAnimationFrame(tickC); else {raf=null;cx.clearRect(0,0,W,H);}
+  }
+  function burstAt(el,n){var r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/3,n,13);}
+  function bigConfetti(){
+    var W=window.innerWidth,H=window.innerHeight;
+    burst(W*0.2,H*0.8,70,18);burst(W*0.8,H*0.8,70,18);
+    setTimeout(function(){burst(W*0.5,H*0.4,90,20);},300);
+    setTimeout(function(){burst(W*0.3,H*0.5,50,16);burst(W*0.7,H*0.5,50,16);},650);
+  }
+
+  /* ---------- Startbildschirm ---------- */
+  function recKey(){return settings.level+"-"+settings.time;}
+  function renderStart(){
+    var tc=$("timeChips"); tc.innerHTML="";
+    TIMES.forEach(function(t){
+      var b=document.createElement("button"); b.className="chip"+(settings.time===t.s?" on":"");
+      b.textContent=t.l;
+      b.addEventListener("click",function(){settings.time=t.s;storeSettings();renderStart();});
+      tc.appendChild(b);
+    });
+    var lc=$("levelChips"); lc.innerHTML="";
+    LEVELS.forEach(function(lv){
+      var b=document.createElement("button"); b.className="chip"+(settings.level===lv.id?" on":"");
+      b.textContent=lv.l;
+      b.addEventListener("click",function(){settings.level=lv.id;storeSettings();renderStart();});
+      lc.appendChild(b);
+    });
+    var r=data.rec[recKey()];
+    $("recBig").textContent = r ? "🏆 Dein Rekord: "+r.best+" Punkte" : "🏆 Noch kein Rekord – leg los!";
+    var h=$("history"); h.innerHTML="";
+    if(r&&r.hist&&r.hist.length){
+      r.hist.slice(-5).reverse().forEach(function(e){
+        var d=document.createElement("div"); d.className="hist"; d.textContent="📅 "+e.d+": "+e.s+" P.";
+        h.appendChild(d);
+      });
+    }
+  }
+  function storeSettings(){data.settings=settings;save(data);}
+
+  /* ---------- Spiel ---------- */
+  var g=null;
+
+  function nextWord(){
+    var fake=Math.random()<FAKE_RATE;
+    var pool=fake?(settings.level==="leicht"?FAKE_EASY:FAKE_HARD):(settings.level==="leicht"?EASY:WORDS100);
+    var w; do{w=pick(pool);}while(w===g.last);
+    g.last=w; g.current={text:w,real:!fake};
+    var card=$("wordCard"), el=$("word");
+    el.textContent=w;
+    card.className=""; void card.offsetWidth; card.className="in";
+    fitWord();
+  }
+  function fitWord(){
+    var card=$("wordCard"),el=$("word"); if(!g||!g.current) return;
+    var len=Math.max(2,g.current.text.length);
+    var f=Math.min(card.clientHeight*0.55,(card.clientWidth*0.85)/(len*0.6));
+    el.style.fontSize=f+"px";
+  }
+  function feedback(t,c){var f=$("feedback");f.textContent=t;f.className=c||"info";}
+
+  function startCountdown(){
+    unlockAudio();
+    g={score:0,wrong:0,streak:0,bestStreak:0,mistakes:[],seen:{},current:null,last:"",
+       running:false,lock:true,endAt:0,lastSec:-1,dur:settings.time*1000};
+    $("start").classList.add("hidden"); $("result").classList.add("hidden");
+    $("game").classList.remove("hidden");
+    $("score").textContent="0"; $("streak").textContent="0"; $("time").textContent=settings.time;
+    $("barFill").style.width="100%"; $("barFill").className="";
+    $("word").textContent=""; $("wordCard").className=""; feedback("Mach dich bereit …","info");
+    var my=g, seq=["3","2","1","Los!"], i=0, cd=$("countdown"), num=$("countNum");
+    cd.classList.remove("hidden");
+    function step(){
+      if(g!==my){cd.classList.add("hidden");return;}
+      if(i>=seq.length){cd.classList.add("hidden");begin();return;}
+      num.textContent=seq[i]; num.style.animation="none"; void num.offsetWidth; num.style.animation="";
+      sCount(i===seq.length-1); i++; setTimeout(step,i===seq.length?500:750);
+    }
+    step();
+  }
+
+  function begin(){
+    g.running=true; g.lock=false; g.endAt=Date.now()+g.dur;
+    feedback("","info"); nextWord(); loop();
+  }
+
+  function loop(){
+    if(!g||!g.running) return;
+    var left=g.endAt-Date.now();
+    if(left<=0){endGame();return;}
+    var sec=Math.ceil(left/1000);
+    if(sec!==g.lastSec){
+      g.lastSec=sec; $("time").textContent=sec;
+      if(sec<=5){sTick();$("barFill").className="hurry";}
+    }
+    $("barFill").style.width=(left/g.dur*100)+"%";
+    requestAnimationFrame(loop);
+  }
+
+  function answer(saysReal){
+    if(!g||!g.running||g.lock) return;
+    unlockAudio();
+    var cur=g.current, ok=(saysReal===cur.real), card=$("wordCard");
+    g.lock=true;
+    if(ok){
+      g.score++; g.streak++; if(g.streak>g.bestStreak) g.bestStreak=g.streak;
+      sGood(); card.className="good";
+      var p=document.createElement("div"); p.className="plus"; p.textContent="+1";
+      card.appendChild(p); setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p);},700);
+      if(g.streak%10===0){
+        sStreak(); burstAt(card,45); feedback(pick(PRAISE_STREAK)+" "+g.streak+" richtig hintereinander!","good");
+      } else feedback("","good");
+    } else {
+      g.wrong++; g.streak=0; sBad(); card.className="bad";
+      if(!g.seen[cur.text]){g.seen[cur.text]=1;g.mistakes.push(cur);}
+      feedback(cur.real?"„"+cur.text+"“ gibt es wirklich!":"„"+cur.text+"“ ist ein Quatschwort!","bad");
+    }
+    $("score").textContent=g.score; $("streak").textContent=g.streak;
+    var my=g;
+    setTimeout(function(){
+      if(g!==my||!g.running) return;
+      g.lock=false; if(!ok) feedback("","info"); nextWord();
+    }, ok?200:900);
+  }
+
+  function endGame(){
+    g.running=false; g.lock=true;
+    $("time").textContent="0"; $("barFill").style.width="0%";
+    var key=recKey(), r=data.rec[key]||{best:0,hist:[]}, old=data.rec[key]?r.best:null;
+    var now=new Date(), d=("0"+now.getDate()).slice(-2)+"."+("0"+(now.getMonth()+1)).slice(-2)+".";
+    r.hist=(r.hist||[]).concat([{s:g.score,d:d}]).slice(-20);
+    var isNew = g.score>0 && (old===null || g.score>old);
+    if(g.score>r.best) r.best=g.score;
+    data.rec[key]=r; save(data);
+
+    $("resTitle").textContent=isNew?"Neuer Rekord! 🎉":"Zeit ist um! ⏰";
+    $("resScore").textContent=g.score;
+    $("resRight").textContent=g.score; $("resWrong").textContent=g.wrong; $("resStreak").textContent=g.bestStreak;
+    var rt;
+    if(isNew&&old!==null) rt="🏆 Du hast deinen alten Rekord ("+old+") geknackt!";
+    else if(isNew) rt="🏆 Dein erster Rekord!";
+    else if(old!==null&&old-g.score<=2) rt="Rekord: "+old+" – ganz knapp! 💪";
+    else rt="Dein Rekord: "+r.best+" Punkte. Morgen klappt es noch besser! 💪";
+    $("resRecord").textContent=rt;
+    var mb=$("mistakes"); mb.innerHTML="";
+    if(g.mistakes.length){
+      $("mistBox").classList.remove("hidden");
+      g.mistakes.forEach(function(m){
+        var s=document.createElement("span"); s.className="mw "+(m.real?"real":"fake"); s.textContent=m.text; mb.appendChild(s);
+      });
+    } else $("mistBox").classList.add("hidden");
+    $("result").classList.remove("hidden");
+    if(isNew){sWin();bigConfetti();} else {sEnd(); if(g.wrong===0&&g.score>0) bigConfetti();}
+  }
+
+  function toMenu(){
+    if(g){g.running=false;} g=null;
+    $("countdown").classList.add("hidden"); $("result").classList.add("hidden");
+    $("game").classList.add("hidden"); $("start").classList.remove("hidden");
+    renderStart();
+  }
+
+  $("startBtn").addEventListener("click",startCountdown);
+  $("againBtn").addEventListener("click",startCountdown);
+  $("menuBtn").addEventListener("click",toMenu);
+  $("homeBtn").addEventListener("click",toMenu);
+  $("yesBtn").addEventListener("click",function(){answer(true);});
+  $("noBtn").addEventListener("click",function(){answer(false);});
+
+  // Tastatur (z. B. mit iPad-Tastatur): ← / J = gibt es, → / N = gibt es nicht
+  document.addEventListener("keydown",function(e){
+    if(!g||!g.running) return;
+    var k=e.key.toLowerCase();
+    if(k==="arrowleft"||k==="j"){e.preventDefault();answer(true);}
+    else if(k==="arrowright"||k==="n"){e.preventDefault();answer(false);}
+  });
+
+  window.addEventListener("resize",function(){sizeCanvas();fitWord();});
+  window.addEventListener("orientationchange",function(){setTimeout(function(){sizeCanvas();fitWord();},250);});
+  document.addEventListener("gesturestart",function(e){e.preventDefault();});
+
+  sizeCanvas();
+  renderStart();
+})();
+</script>
+</body>
+</html>
