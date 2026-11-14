@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ä oder e? äu oder eu? – Wörter ableiten</title>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff8ec; --card:#ffffff; --ink:#2b2a33; --soft:#6b6875;
+    --a:#e8590c; --a-soft:#fff0e3; --ok:#2f9e44; --ok-soft:#e9f8ec;
+    --no:#c92a2a; --no-soft:#fdecec; --blue:#1c7ed6; --blue-soft:#e7f2fd; --yel:#fff4d6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Andika',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+       min-height:100vh;display:flex;justify-content:center;padding:24px 16px}
+  .app{width:100%;max-width:760px}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap}
+  header h1{font-size:1.35rem;margin:0}
+  .pill{background:var(--card);border-radius:999px;padding:6px 14px;font-weight:700;box-shadow:0 2px 0 #00000012}
+  .card{background:var(--card);border-radius:24px;padding:28px;box-shadow:0 4px 0 #0000000f,0 10px 30px #0000000a}
+  h2{margin:0 0 12px;font-size:1.55rem}
+  p{font-size:1.15rem;line-height:1.55;margin:0 0 12px}
+  .hl{color:var(--a);font-weight:700}
+  i{font-style:normal}
+  .reveal i{color:var(--a);font-weight:700;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:4px}
+  .tip{background:var(--blue-soft);border-radius:16px;padding:16px 18px;margin:16px 0}
+  .tip p{margin:4px 0}
+  .big{font-size:3rem;font-weight:700;text-align:center;margin:14px 0 6px;letter-spacing:1px}
+  .gap{display:inline-block;min-width:1.6em;border-bottom:5px solid var(--a);color:var(--a);text-align:center}
+  .q{text-align:center;color:var(--soft);font-size:1.1rem;margin-bottom:14px}
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .opts.col{grid-template-columns:1fr}
+  button{font-family:inherit;font-size:1.25rem;font-weight:700;border:0;border-radius:16px;padding:14px 16px;cursor:pointer;
+         background:var(--a-soft);color:var(--ink);box-shadow:0 4px 0 #e8590c40;transition:transform .08s;line-height:1.35}
+  .opts.col button{text-align:left;font-size:1.12rem}
+  button:hover:not(:disabled){transform:translateY(-2px)}
+  button:active:not(:disabled){transform:translateY(2px)}
+  button:disabled{cursor:default;opacity:.5}
+  button.right{background:var(--ok-soft);box-shadow:0 4px 0 #2f9e4450;opacity:1}
+  button.wrong{background:var(--no-soft);box-shadow:0 4px 0 #c92a2a40}
+  button.sel{outline:4px solid var(--blue)}
+  .primary{background:var(--a);color:#fff;box-shadow:0 4px 0 #a33f06;display:block;margin:22px auto 0;padding:14px 34px}
+  .feedback{margin-top:16px;border-radius:16px;padding:14px 18px;font-size:1.12rem;line-height:1.5;display:none}
+  .feedback.ok{display:block;background:var(--ok-soft)}
+  .feedback.no{display:block;background:var(--no-soft)}
+  .feedback.hm{display:block;background:var(--yel)}
+  /* matching */
+  .match{display:grid;grid-template-columns:1fr 1fr;gap:12px 28px}
+  .match .colh{text-align:center;font-weight:700;color:var(--soft)}
+  .match button{width:100%}
+  .p0{background:#d3f9d8!important;box-shadow:0 4px 0 #2f9e4440!important;opacity:1!important}
+  .p1{background:#d0ebff!important;box-shadow:0 4px 0 #1c7ed640!important;opacity:1!important}
+  .p2{background:#ffe3e3!important;box-shadow:0 4px 0 #c92a2a30!important;opacity:1!important}
+  .p3{background:#f3d9fa!important;box-shadow:0 4px 0 #9c36b540!important;opacity:1!important}
+  .p4{background:#fff3bf!important;box-shadow:0 4px 0 #f08c0040!important;opacity:1!important}
+  /* baskets */
+  .baskets{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  .basket{border:3px dashed #d9cfbf;border-radius:18px;padding:12px;min-height:120px}
+  .basket h3{margin:0 0 8px;font-size:1.05rem;text-align:center}
+  .chip{display:inline-block;background:#fff;border-radius:10px;padding:6px 10px;margin:4px;font-size:1.2rem;font-weight:700;box-shadow:0 2px 0 #0000001a}
+  /* rule */
+  .rule{background:var(--yel);border-radius:18px;padding:18px 20px;margin:14px 0;font-size:1.2rem;line-height:1.9}
+  .slot{display:inline-block;min-width:3.2em;text-align:center;border-bottom:4px solid var(--a);color:var(--a);font-weight:700;padding:0 6px}
+  .slot.cur{background:#ffe8cc;border-radius:6px 6px 0 0}
+  .stations{display:flex;gap:6px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+  .st{font-size:.9rem;padding:4px 10px;border-radius:999px;background:#efe8db;color:var(--soft)}
+  .st.done{background:var(--ok-soft);color:var(--ok)} .st.cur{background:var(--a);color:#fff}
+  .merk{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin:16px 0}
+  .mk{background:var(--yel);border:3px dashed #f2b705;border-radius:18px;padding:12px 8px;text-align:center;cursor:pointer;user-select:none}
+  .mk .e{font-size:2rem} .mk .w{font-size:1.35rem;font-weight:700;margin-top:4px}
+  .mk .n{font-size:.9rem;color:var(--soft);min-height:1.2em}
+  .mk.seen{background:#fffbe9;border-style:solid}
+  .center{text-align:center}
+  @media (max-width:540px){ .big{font-size:2.3rem} .card{padding:18px} .match{gap:10px 12px} button{font-size:1.1rem} .baskets{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🔬 Wörter-Forscher: ä oder e? äu oder eu?</h1>
+    <span class="pill" id="badge">🔎 Forscherauftrag</span>
+  </header>
+  <div class="card" id="screen"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const screen = $("#screen");
+const STATIONS = ["Familien","Sortieren","Regel","Testen","Stolpersteine"];
+function stationBar(n){
+  return '<div class="stations">' + STATIONS.map((s,i)=>
+    `<span class="st ${i<n?'done':i===n?'cur':''}">${i+1} ${s}</span>`).join("") + '</div>';
+}
+function shuffle(a){ return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]); }
+
+/* Multiple choice helper: options [{t, ok, msg}] */
+function choice(el, opts, onDone, col=true){
+  el.innerHTML = `<div class="opts ${col?'col':''}">${opts.map((o,i)=>`<button data-i="${i}">${o.t}</button>`).join("")}</div><div class="feedback"></div>`;
+  const fb = el.querySelector(".feedback");
+  el.querySelectorAll("button").forEach(b => b.onclick = () => {
+    const o = opts[b.dataset.i];
+    if(o.ok){
+      b.classList.add("right");
+      el.querySelectorAll("button").forEach(x=>x.disabled=true);
+      fb.className = "feedback ok"; fb.innerHTML = "✅ " + o.msg;
+      onDone && onDone();
+    } else {
+      b.classList.add("wrong"); b.disabled = true;
+      fb.className = "feedback no"; fb.innerHTML = "🤔 " + o.msg;
+    }
+  });
+}
+function nextBtn(el, label, fn){
+  const b = document.createElement("button");
+  b.className = "primary"; b.innerHTML = label; b.onclick = fn; el.appendChild(b);
+}
+
+/* ================= START ================= */
+function start(){
+  screen.innerHTML = `
+    <h2>Willkommen, Wörter-Forscher! 🕵️</h2>
+    <p>Sprich diese Wörter laut: <b>Häuser</b> – <b>heute</b>. Hörst du einen Unterschied?</p>
+    <p>Nein! <b>äu</b> und <b>eu</b> klingen gleich. Auch <b>ä</b> und <b>e</b> klingen oft gleich.</p>
+    <div class="tip"><p>🔎 <b>Dein Auftrag:</b> Finde heraus, woran man erkennt, wann man
+      <span class="hl">ä/äu</span> und wann man <span class="hl">e/eu</span> schreibt.</p>
+      <p>Du sammelst Hinweise an 5 Stationen. Am Ende schreibst du <b>deine eigene Regel</b>!</p></div>
+    <button class="primary" onclick="s1()">Auftrag annehmen 🚀</button>`;
+}
+
+/* ================= STATION 1: Wortfamilien ================= */
+const pairs = [
+  ["F<i>ä</i>nger","f<i>a</i>ngen"],
+  ["F<i>ä</i>hre","f<i>a</i>hren"],
+  ["R<i>äu</i>ber","r<i>au</i>ben"],
+  ["B<i>äu</i>me","B<i>au</i>m"],
+  ["H<i>ä</i>nde","H<i>a</i>nd"]
+];
+function s1(){
+  const right = shuffle(pairs.map((p,i)=>i));
+  screen.innerHTML = `
+    <h2>Station 1: Wortfamilien 👨‍👩‍👧</h2>
+    <p>Diese Wörter gehören zu einer Familie. Tippe ein Wort links an und dann sein Familienwort rechts.</p>
+    <div class="match" id="m">
+      <div class="colh">Wort</div><div class="colh">Familienwort</div>
+      ${pairs.map((p,i)=>`<button data-l="${i}">${p[0]}</button><button data-r="${right[i]}">${pairs[right[i]][1]}</button>`).join("")}
+    </div>
+    <div class="feedback" id="fb"></div>
+    <div id="after"></div>
+    ${stationBar(0)}`;
+  let sel = null, found = 0;
+  const fb = $("#fb");
+  screen.querySelectorAll("[data-l]").forEach(b => b.onclick = () => {
+    screen.querySelectorAll("[data-l]").forEach(x=>x.classList.remove("sel"));
+    sel = b; b.classList.add("sel"); fb.className="feedback";
+  });
+  screen.querySelectorAll("[data-r]").forEach(b => b.onclick = () => {
+    if(!sel){ fb.className="feedback hm"; fb.textContent="👈 Tippe zuerst ein Wort links an."; return; }
+    if(sel.dataset.l === b.dataset.r){
+      const c = "p"+found;
+      sel.classList.remove("sel"); sel.classList.add(c); b.classList.add(c);
+      sel.disabled = b.disabled = true; sel = null; found++;
+      fb.className="feedback";
+      if(found === pairs.length) s1Question();
+    } else {
+      b.classList.add("wrong"); setTimeout(()=>b.classList.remove("wrong"),500);
+      fb.className="feedback no"; fb.textContent="🤔 Das gehört nicht zur selben Familie. Versuch es noch einmal!";
+    }
+  });
+}
+function s1Question(){
+  const a = $("#after");
+  a.innerHTML = `<div class="tip"><p>🎉 Alle Familien gefunden!</p>
+    <p><b>Forscherfrage:</b> Vergleiche die Paare. Schau genau auf die Buchstaben in der Mitte. Was fällt dir auf?</p></div><div id="c"></div>`;
+  choice($("#c"), [
+    {t:"Im Familienwort steht immer ein a oder au.", ok:true,
+     msg:"Genau! Im Wort steht <b>ä</b> oder <b>äu</b>, im Familienwort steht <b>a</b> oder <b>au</b>. Schau, jetzt sind sie markiert!"},
+    {t:"Im Familienwort steht immer ein e oder eu.", ok:false, msg:"Schau noch einmal genau hin: Welcher Buchstabe steht im Familienwort?"},
+    {t:"Alle Wörter sind Namenwörter (Nomen).", ok:false, msg:"Ist <b>fangen</b> ein Nomen? Schau lieber auf die Buchstaben in der Mitte."}
+  ], () => { $("#m").classList.add("reveal"); nextBtn(a, "Weiter forschen ➜", s1b); });
+}
+function s1b(){
+  screen.innerHTML = `
+    <h2>Station 1: Wie findet man das Familienwort? 🧩</h2>
+    <p>Schau dir an, was sich verändert hat:</p>
+    <div class="big reveal" style="font-size:2.4rem">B<i>äu</i>me ➜ B<i>au</i>m</div>
+    <div id="c1"></div><div id="c2"></div><div id="nx"></div>
+    ${stationBar(0)}`;
+  choice($("#c1"), [
+    {t:"Ich habe aus <b>vielen</b> eins gemacht (Einzahl).", ok:true, msg:"Richtig! Bei einem Nomen in der Mehrzahl bildest du die <b>Einzahl</b>."},
+    {t:"Ich habe das Wort länger gemacht.", ok:false, msg:"Ist <b>Baum</b> länger als <b>Bäume</b>? Schau noch einmal."}
+  ], () => {
+    $("#c2").innerHTML = `<div class="big reveal" style="font-size:2.4rem;margin-top:22px">er l<i>äu</i>ft ➜ l<i>au</i>fen</div><div id="c2b"></div>`;
+    choice($("#c2b"), [
+      {t:"Ich habe die Einzahl gebildet.", ok:false, msg:"Hmm, <b>läuft</b> ist ein Verb (Tunwort). Was macht man mit einem Verb?"},
+      {t:"Ich habe die <b>Grundform</b> des Verbs gebildet.", ok:true, msg:"Super! Bei einem Verb bildest du die <b>Grundform</b>: er läuft ➜ laufen."}
+    ], () => nextBtn($("#nx"), "Zu Station 2 ➜", s2));
+  });
+}
+
+/* ================= STATION 2: Sortieren ================= */
+const sortWords = [
+  {w:"H<i>äu</i>ser", opts:["Haus","Hut"], fam:"Haus"},
+  {w:"F<i>e</i>lder", opts:["Falter","Fall"], fam:null},
+  {w:"B<i>ä</i>lle", opts:["Ball","Bus"], fam:"Ball"},
+  {w:"h<i>eu</i>te", opts:["Haut","Hand"], fam:null},
+  {w:"N<i>e</i>ster", opts:["Nase","Nacht"], fam:null},
+  {w:"L<i>äu</i>fer", opts:["laufen","Laus"], fam:"laufen"},
+  {w:"L<i>eu</i>te", opts:["laut","Laub"], fam:null},
+  {w:"Gl<i>ä</i>ser", opts:["Glas","Gras"], fam:"Glas"}
+];
+let basketA, basketB;
+function s2(){
+  basketA = []; basketB = [];
+  screen.innerHTML = `
+    <h2>Station 2: Familienwort mit a oder au? 🧺</h2>
+    <p>Suche zu jedem Wort ein Familienwort mit <b>a</b> oder <b>au</b>.
+       Gibt es keins? Dann tippe auf <b>„Gibt es nicht“</b>.</p>
+    <div id="task"></div>
+    <div class="baskets">
+      <div class="basket" id="bA"><h3>✅ Familienwort mit a/au gefunden</h3></div>
+      <div class="basket" id="bB"><h3>❌ Kein Familienwort mit a/au</h3></div>
+    </div>
+    <div id="after"></div>
+    ${stationBar(1)}`;
+  s2word(0);
+}
+function s2word(i){
+  const t = $("#task");
+  if(i >= sortWords.length){ t.innerHTML = ""; return s2Question(); }
+  const s = sortWords[i];
+  t.innerHTML = `<div class="big">${s.w}</div><div class="q">Wort ${i+1} von ${sortWords.length}</div><div id="ch"></div>`;
+  const opts = shuffle(s.opts).map(o => ({
+    t:o, ok: o===s.fam,
+    msg: o===s.fam ? `Ja! <b>${o}</b> gehört zur Familie.`
+                   : (s.fam ? `<b>${o}</b> gehört nicht zur Familie. Probier noch einmal!`
+                            : `<b>${o}</b> klingt ähnlich, gehört aber nicht zur Familie. Gibt es überhaupt ein Familienwort?`)
+  }));
+  opts.push({t:"Gibt es nicht", ok: !s.fam,
+    msg: s.fam ? "Doch! Schau noch einmal genau – ein Wort hier gehört zur Familie." : "Stimmt! Hier gibt es kein Familienwort mit a oder au."});
+  choice($("#ch"), opts, () => {
+    const chip = `<span class="chip">${s.w}</span>`;
+    (s.fam ? $("#bA") : $("#bB")).insertAdjacentHTML("beforeend", chip);
+    setTimeout(()=>s2word(i+1), 1100);
+  }, false);
+}
+function s2Question(){
+  const a = $("#after");
+  a.innerHTML = `<div class="tip"><p>🧺 Alle Wörter sind sortiert!</p>
+    <p><b>Forscherfrage:</b> Vergleiche die beiden Körbe. Was entdeckst du?</p></div><div id="c"></div>`;
+  choice($("#c"), [
+    {t:"Links stehen nur kurze Wörter, rechts nur lange.", ok:false, msg:"Zähl mal nach – stimmt das wirklich? Schau lieber auf die Buchstaben."},
+    {t:"Links schreibt man ä oder äu – rechts schreibt man e oder eu.", ok:true,
+     msg:"Stark entdeckt! 🕵️ Wo es ein Familienwort mit a/au gibt, steht <b>ä/äu</b>. Wo es keins gibt, steht <b>e/eu</b>."},
+    {t:"In beiden Körben stehen nur Wörter mit ä.", ok:false, msg:"Schau dir <b>heute</b> und <b>Felder</b> genau an."}
+  ], () => { $("#bA").classList.add("reveal"); $("#bB").classList.add("reveal"); nextBtn(a, "Zu Station 3 ➜", s3); });
+}
+
+/* ================= STATION 3: Regel formulieren ================= */
+const ruleSlots = [
+  {opts:["a oder au","e oder eu"], ok:"a oder au"},
+  {opts:["ä oder äu","e oder eu"], ok:"ä oder äu"},
+  {opts:["ä oder äu","e oder eu"], ok:"e oder eu"},
+  {opts:["Einzahl","Grundform"], ok:"Einzahl"},
+  {opts:["Einzahl","Grundform"], ok:"Grundform"}
+];
+function ruleHTML(filled){
+  const s = i => `<span class="slot ${filled===i?'cur':''}" id="slot${i}">${i<filled?ruleSlots[i].ok:'?'}</span>`;
+  return `<div class="rule">
+    🕵️ <b>Meine Forscher-Regel</b><br>
+    Finde ich ein Familienwort mit ${s(0)}, schreibe ich ${s(1)}.<br>
+    Finde ich keins, schreibe ich meistens ${s(2)}.<br>
+    <span style="font-size:1.05rem">So finde ich das Familienwort:<br>
+    📚 Nomen in der Mehrzahl ➜ ${s(3)} &nbsp;&nbsp; 🏃 Verb ➜ ${s(4)}</span>
+  </div>`;
+}
+function s3(){
+  screen.innerHTML = `
+    <h2>Station 3: Schreib deine Regel! ✍️</h2>
+    <p>Du hast viele Hinweise gesammelt. Jetzt kannst du die Regel selbst aufschreiben.
+       Fülle die Lücken der Reihe nach.</p>
+    <div id="r"></div><div id="ch"></div><div id="nx"></div>
+    ${stationBar(2)}`;
+  s3slot(0);
+}
+function s3slot(i){
+  $("#r").innerHTML = ruleHTML(i);
+  if(i >= ruleSlots.length){
+    $("#ch").innerHTML = `<div class="feedback ok" style="display:block">🎉 Deine Regel ist fertig! Jetzt testest du, ob sie wirklich funktioniert.</div>`;
+    nextBtn($("#nx"), "Zu Station 4 ➜", ()=>s4(0));
+    return;
+  }
+  const sl = ruleSlots[i];
+  const hints = ["Denk an die Familienwörter aus Station 1: fangen, Baum, rauben …",
+                 "Wie schreibt man Fänger, Häuser, Gläser?",
+                 "Schau in den rechten Korb: Felder, heute, Nester …",
+                 "Bäume ➜ Baum: Aus vielen wird …",
+                 "er läuft ➜ laufen: Das ist die …"];
+  $("#ch").innerHTML = `<p class="q">💡 ${hints[i]}</p><div id="c"></div>`;
+  choice($("#c"), sl.opts.map(o=>({t:o, ok:o===sl.ok, msg: o===sl.ok ? "Passt!" : "Hmm, schau dir deine Hinweise noch einmal an."})),
+    () => setTimeout(()=>s3slot(i+1), 700), false);
+}
+
+/* ================= STATION 4: Regel testen ================= */
+const testWords = [
+  {pre:"Flederm", post:"use", opts:["äu","eu"], answer:"äu", why:"Familienwort: die Flederm<b>au</b>s (Einzahl)."},
+  {pre:"Flugz", post:"ug", opts:["äu","eu"], answer:"eu", why:"Kein Familienwort mit <b>au</b> ➜ <b>eu</b>."},
+  {pre:"H", post:"uschen", opts:["äu","eu"], answer:"äu", why:"Familienwort: das H<b>au</b>s."},
+  {pre:"F", post:"lder", opts:["ä","e"], answer:"e", why:"Einzahl: das F<b>e</b>ld – kein <b>a</b> ➜ <b>e</b>."},
+  {pre:"gef", post:"hrlich", opts:["ä","e"], answer:"ä", why:"Familienwort: die Gef<b>a</b>hr."},
+  {pre:"N", post:"ster", opts:["ä","e"], answer:"e", why:"Einzahl: das N<b>e</b>st – kein <b>a</b> ➜ <b>e</b>."},
+  {pre:"h", post:"ute", opts:["äu","eu"], answer:"eu", why:"Kein Familienwort mit <b>au</b> ➜ <b>eu</b>."},
+  {pre:"L", post:"rm", opts:["ä","e"], answer:"ä", trap:true}
+];
+function s4(i){
+  if(i >= testWords.length) return s5();
+  const t = testWords[i];
+  screen.innerHTML = `
+    <h2>Station 4: Teste deine Regel 🧪</h2>
+    <div class="q">Wort ${i+1} von ${testWords.length} · Suche zuerst das Familienwort!</div>
+    <div class="big">${t.pre}<span class="gap" id="gap">?</span>${t.post}</div>
+    <div class="opts">${t.opts.map(o=>`<button data-o="${o}">${o}</button>`).join("")}</div>
+    <div class="feedback" id="fb"></div><div id="nx"></div>
+    ${stationBar(3)}`;
+  const fb = $("#fb");
+  screen.querySelectorAll(".opts button").forEach(b => b.onclick = () => {
+    const pick = b.dataset.o;
+    if(t.trap){
+      screen.querySelectorAll(".opts button").forEach(x=>x.disabled=true);
+      $("#gap").textContent = "ä";
+      fb.className = "feedback hm";
+      fb.innerHTML = pick === "e"
+        ? "😮 Du hast genau nach deiner Regel gedacht – es gibt kein Familienwort mit <b>a</b>. Aber man schreibt trotzdem <b>Lärm</b> mit <b>ä</b>! Stimmt die Regel hier etwa nicht?"
+        : "✅ Ja, man schreibt <b>Lärm</b>. Aber Moment … 🤔 Hast du ein Familienwort mit <b>a</b> gefunden? Nein! Die Regel hilft hier gar nicht.";
+      nextBtn($("#nx"), "Diesem Rätsel nachgehen 🔍", s5);
+      return;
+    }
+    if(pick === t.answer){
+      b.classList.add("right"); $("#gap").textContent = t.answer;
+      screen.querySelectorAll(".opts button").forEach(x=>x.disabled=true);
+      fb.className = "feedback ok"; fb.innerHTML = "✅ Deine Regel funktioniert! " + t.why;
+      nextBtn($("#nx"), "Weiter ➜", ()=>s4(i+1));
+    } else {
+      b.classList.add("wrong"); b.disabled = true;
+      fb.className = "feedback no";
+      fb.innerHTML = "🤔 Benutze deine Regel: Gibt es ein Familienwort mit <b>a</b> oder <b>au</b>?";
+    }
+  });
+}
+
+/* ================= STATION 5: Stolpersteine ================= */
+const merk = [["🧀","K<i>ä</i>se"],["🐦","K<i>ä</i>fig"],["🐻","B<i>ä</i>r"],["🌷","M<i>ä</i>rz"],["🪚","S<i>ä</i>ge"],
+              ["🐞","K<i>ä</i>fer"],["👧","M<i>ä</i>dchen"],["💧","Tr<i>ä</i>ne"],["📢","L<i>ä</i>rm"]];
+function s5(){
+  screen.innerHTML = `
+    <h2>Station 5: Stolpersteine 🪨</h2>
+    <p>Hier sind noch mehr Wörter mit <b>ä</b>. Tippe jede Karte an und suche ein Familienwort mit <b>a</b>.</p>
+    <div class="merk reveal">${merk.map(m=>`<div class="mk"><div class="e">${m[0]}</div><div class="w">${m[1]}</div><div class="n"></div></div>`).join("")}</div>
+    <div id="after"></div>
+    ${stationBar(4)}`;
+  let seen = 0;
+  screen.querySelectorAll(".mk").forEach(c => c.onclick = () => {
+    if(c.classList.contains("seen")) return;
+    c.classList.add("seen"); c.querySelector(".n").textContent = "Kein Wort mit a? 🤷";
+    if(++seen === merk.length) s5Question();
+  });
+}
+function s5Question(){
+  const a = $("#after");
+  a.innerHTML = `<div class="tip"><p><b>Forscherfrage:</b> Bei keinem dieser Wörter findest du ein Familienwort mit <b>a</b>.
+    Trotzdem schreibt man sie mit <b>ä</b>. Was bedeutet das?</p></div><div id="c"></div>`;
+  choice($("#c"), [
+    {t:"Die Regel stimmt nie. Ich rate einfach.", ok:false, msg:"Bei Fänger, Häuser oder Gläser hat deine Regel doch super geklappt!"},
+    {t:"Es gibt Ausnahmen. Diese Wörter muss ich mir merken.", ok:true,
+     msg:"Genau! Das sind <b>Merkwörter</b>. Ableiten klappt hier nicht – man muss sie sich einprägen und immer wieder üben."},
+    {t:"Diese Wörter schreibt man eigentlich mit e.", ok:false, msg:"Nein – man schreibt wirklich Käse, Bär und Träne mit ä."}
+  ], () => nextBtn(a, "Mein Forscher-Ergebnis 🏆", finish));
+}
+
+/* ================= ENDE ================= */
+function finish(){
+  $("#badge").textContent = "🏆 Auftrag erfüllt";
+  screen.innerHTML = `
+    <h2 class="center">Auftrag erfüllt, Wörter-Forscher! 🏆</h2>
+    <p class="center">Das hast du selbst herausgefunden:</p>
+    ${ruleHTML(99).replace(/\?/g,"")}
+    <div class="rule" style="background:#fdecec">
+      📌 <b>Aber Achtung – es gibt Ausnahmen!</b><br>
+      Bei diesen <b>Merkwörtern</b> findest du kein Familienwort mit a. Du musst sie dir merken und immer wieder üben:
+      <div class="merk reveal" style="margin-bottom:0">${merk.map(m=>`<div class="mk seen" style="cursor:default"><div class="e">${m[0]}</div><div class="w">${m[1]}</div></div>`).join("")}</div>
+    </div>
+    <p class="center">✏️ Schreib deine Regel und die Merkwörter in dein Heft!</p>
+    <button class="primary" onclick="location.reload()">Nochmal forschen 🔄</button>`;
+}
+
+/* ruleHTML for finish: fill all slots */
+const _ruleHTML = ruleHTML;
+ruleHTML = function(filled){ return _ruleHTML(filled >= 99 ? ruleSlots.length : filled); };
+
+start();
+</script>
+</body>
+</html>
