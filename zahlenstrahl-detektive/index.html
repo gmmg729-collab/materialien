@@ -10,6 +10,7 @@
     --bg:#fdf8ec; --card:#ffffff; --ink:#2b2a33; --muted:#6b6878;
     --flag:#ffd84d; --flagEdge:#c9a300; --ok:#2e9e5b; --okBg:#e3f6ea;
     --bad:#e0573a; --badBg:#fdece7; --warn:#e89a14; --accent:#3a6fd8; --accentBg:#e6eefc;
+    --down:#3a6fd8; --up:#d9771a; --upBg:#fdeedd; --mid:#d6336c;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:"Andika",system-ui,sans-serif;font-size:18px;line-height:1.4}
@@ -24,9 +25,10 @@
   .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
   .card{background:var(--card);border-radius:20px;box-shadow:0 2px 0 #eadfc3,0 8px 24px rgba(80,60,0,.07);padding:22px 22px 18px}
   .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-  .task{font-size:24px;min-height:44px}
+  .task{font-size:24px;min-height:44px;flex:1 1 520px}
   .task .num{display:inline-block;font-size:34px;font-weight:700;background:var(--accentBg);color:var(--accent);padding:0 14px;border-radius:12px;margin:0 4px;white-space:nowrap}
   .task .fl{display:inline-block;background:var(--flag);border:2px solid var(--flagEdge);border-radius:7px;padding:0 10px;font-weight:700;margin:0 4px}
+  .hd{color:var(--mid);text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:4px}
   .progress{font-size:18px;color:var(--muted);white-space:nowrap}
   .stars{letter-spacing:2px}
   .scroller{overflow-x:auto;margin:10px -8px 0;padding:0 8px}
@@ -40,13 +42,20 @@
   .flagStick{stroke:var(--ink);stroke-width:2}
   .flagTxt{font-family:"Andika",sans-serif;font-size:20px;font-weight:700;text-anchor:middle;fill:var(--ink)}
   .flagVal{font-family:"Andika",sans-serif;font-size:12px;text-anchor:middle;fill:var(--muted)}
+  .svgTxt{font-family:"Andika",sans-serif;font-size:15px;font-weight:700;text-anchor:middle}
   .ghost{stroke:var(--accent);stroke-width:3;stroke-dasharray:5 4;opacity:.7}
   .hit{fill:transparent;cursor:pointer}
   .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}
-  input.ans{font:inherit;font-size:28px;width:200px;padding:6px 12px;border:3px solid #d9d3c2;border-radius:12px;text-align:center}
+  input.ans{font:inherit;font-size:28px;width:220px;padding:6px 12px;border:3px solid #d9d3c2;border-radius:12px;text-align:center}
   input.ans:focus{outline:none;border-color:var(--accent)}
   .btn{font:inherit;font-size:19px;font-weight:700;border:none;border-radius:12px;padding:10px 20px;cursor:pointer;background:var(--accent);color:#fff}
   .btn.ghostbtn{background:#fff;color:var(--accent);border:2px solid var(--accent)}
+  .btn.down{background:var(--down)}
+  .btn.up{background:var(--up)}
+  .btn.choice{background:#fff;color:var(--ink);border:2px solid #d9d3c2;min-width:58px}
+  .btn.choice:hover{border-color:var(--accent)}
+  .btn.choice.wrong{opacity:.35}
+  .btn.big{font-size:22px;padding:14px 22px}
   .btn:disabled{opacity:.4;cursor:default}
   .feedback{min-height:56px;margin-top:12px;padding:10px 14px;border-radius:12px;font-size:20px;display:none}
   .feedback.ok{display:block;background:var(--okBg);color:#1d6b3d}
@@ -55,6 +64,21 @@
   .hintbox{font-size:16px;color:var(--muted);margin-top:6px}
   .summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   .summary span{background:#fff;border:2px solid #e3dccb;border-radius:10px;padding:2px 10px;font-size:18px;color:var(--ink)}
+  .panel{margin-top:18px;background:#fff;border-radius:16px;padding:14px 18px;border:2px solid #eadfc3}
+  .panel h2{font-size:20px;margin:0 0 6px}
+  table.ft{border-collapse:collapse;font-size:20px;margin-top:6px}
+  table.ft th, table.ft td{padding:4px 10px;text-align:center;border-bottom:1px solid #eee5cf}
+  table.ft th{font-size:15px;color:var(--muted)}
+  table.ft td.dg{font-weight:700;min-width:34px}
+  table.ft .rcol{background:#f3f0e6}
+  table.ft .dcol{background:#fde3ec;color:var(--mid)}
+  table.ft th.dcol{color:var(--mid)}
+  .tagUp{color:var(--up);font-weight:700}
+  .tagDown{color:var(--down);font-weight:700}
+  .rule{background:#fff8d6;border:3px solid var(--flag);border-radius:16px;padding:14px 18px;margin-top:18px}
+  .rule h2{margin:0 0 6px;font-size:22px}
+  .rule .line{display:flex;gap:12px;align-items:center;margin:4px 0;flex-wrap:wrap}
+  .pill{display:inline-block;border-radius:999px;padding:2px 12px;font-weight:700;color:#fff}
   details.teacher{margin-top:18px;background:#fff;border-radius:16px;padding:12px 18px;border:2px dashed #e3dccb}
   details.teacher summary{cursor:pointer;font-weight:700}
   textarea{width:100%;font:inherit;font-size:17px;min-height:70px;padding:8px 10px;border:2px solid #d9d3c2;border-radius:10px;margin-top:8px}
@@ -65,7 +89,7 @@
 <body>
 <div class="wrap">
   <h1>🔍 Zahlenstrahl-Detektive</h1>
-  <p class="sub">Finde die Zahlen auf dem Zahlenstrahl – oder lies ab, welche Zahl bei der Fahne steht.</p>
+  <p class="sub">Finde Zahlen auf dem Zahlenstrahl, lies sie ab – und finde heraus, wie Runden funktioniert.</p>
 
   <div class="controls">
     <div class="group">
@@ -82,6 +106,7 @@
       <div class="seg" id="modeSeg">
         <button data-mode="find" class="on">📍 Zahl finden</button>
         <button data-mode="read">👀 Zahl ablesen</button>
+        <button data-mode="round">🎯 Runden</button>
       </div>
     </div>
   </div>
@@ -92,7 +117,9 @@
       <div class="progress"><span id="prog"></span> &nbsp;<span class="stars" id="stars"></span></div>
     </div>
 
-    <div class="scroller"><svg id="svg" viewBox="0 0 1000 200" aria-label="Zahlenstrahl"></svg></div>
+    <div class="scroller" id="scroller"><svg id="svg" viewBox="0 0 1000 200" aria-label="Zahlenstrahl"></svg></div>
+
+    <div class="row" id="roundRow" style="display:none"></div>
 
     <div class="row" id="readRow" style="display:none">
       <input class="ans" id="ans" inputmode="numeric" autocomplete="off" placeholder="Zahl">
@@ -104,14 +131,19 @@
     <div class="row">
       <button class="btn" id="next" style="display:none">Weiter ➜</button>
       <button class="btn ghostbtn" id="hintBtn">💡 Tipp</button>
+      <button class="btn ghostbtn" id="lineToggle" style="display:none">📏 Zahlenstrahl zeigen</button>
       <button class="btn ghostbtn" id="restart">↺ Neu starten</button>
     </div>
     <div class="hintbox" id="hint"></div>
   </div>
 
+  <div class="rule" id="ruleBox" style="display:none"></div>
+  <div class="panel" id="tableBox" style="display:none"></div>
+
   <details class="teacher">
-    <summary>Für Lehrkräfte: eigene Zahlen festlegen</summary>
-    <p class="small">Zahlen durch Komma oder Zeilenumbruch trennen (Punkte und Leerzeichen innerhalb einer Zahl sind erlaubt, z. B. „3.800“ oder „3 800“). Zahlen außerhalb des gewählten Zahlenstrahls werden übersprungen.</p>
+    <summary>Für Lehrkräfte</summary>
+    <p class="small"><b>Runden:</b> Die Kinder runden zuerst 8 Zahlen am Zahlenstrahl, mit Blick auf die Nachbarzahlen und die Mitte. Ihre Ergebnisse sammeln sie in der Forscher-Tabelle. Danach beantworten sie zwei Entdecker-Fragen: „Welche Stelle entscheidet?“ und „Ab welcher Ziffer wird aufgerundet?“. Erst dann erscheint die Rundungsregel. Zum Schluss folgt eine Profi-Runde ohne Zahlenstrahl. Gerundet wird jeweils auf die beschrifteten Striche: bis 1 000 auf Hunderter, bis 10 000 auf Tausender und so weiter. Ein Wechsel des Zahlenstrahls lädt zum Transfer ein.</p>
+    <p class="small"><b>Finden &amp; Ablesen – eigene Zahlen:</b> Zahlen durch Komma oder Zeilenumbruch trennen. Punkte und Leerzeichen innerhalb einer Zahl sind erlaubt, z. B. „3.800“. Zahlen außerhalb des Zahlenstrahls werden übersprungen.</p>
     <textarea id="nums"></textarea>
     <div class="row">
       <button class="btn" id="apply">Übernehmen</button>
@@ -124,8 +156,10 @@
 
 <script>
 (function(){
-  const BOOK = [500, 2400, 3800, 5500, 7100, 8200, 9900]; // Werte für den Zahlenstrahl bis 10 000
+  const BOOK = [500, 2400, 3800, 5500, 7100, 8200, 9900];
   const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const PLACE = ["Einer","Zehner","Hunderter","Tausender","Zehntausender","Hunderttausender","Millionen"];
+  const SHORT = ["E","Z","H","T","ZT","HT","M"];
   const X0 = 50, X1 = 950, Y = 120;
   const NS = "http://www.w3.org/2000/svg";
 
@@ -138,6 +172,8 @@
   const step = () => max / 100;
   const xOf = v => X0 + (X1 - X0) * v / max;
   const bookNums = () => BOOK.map(b => Math.round(b * max / 10000));
+  const show = (id, on, disp) => { $(id).style.display = on ? (disp || "") : "none"; };
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   function parseList(txt){
     return txt.split(/[,;\n]+/).map(s => s.replace(/[\s. ']/g, "")).filter(s => /^\d+$/.test(s)).map(Number);
@@ -148,12 +184,32 @@
     return [...s];
   }
 
-  // ---------- Zeichnen ----------
+  // ---------- SVG-Helfer ----------
   function el(tag, attrs, parent){
     const e = document.createElementNS(NS, tag);
     for (const k in attrs) e.setAttribute(k, attrs[k]);
     (parent || svg).appendChild(e);
     return e;
+  }
+  function txt(x, y, s, color, size){
+    const t = el("text", {x, y, class:"svgTxt", fill: color || "#2b2a33"});
+    if (size) t.style.fontSize = size + "px";
+    t.textContent = s; return t;
+  }
+  function drawAxis(boldVals){
+    el("line", {x1:X0-12, y1:Y, x2:X1+22, y2:Y, class:"axis"});
+    el("path", {d:`M${X1+22} ${Y} l-12 -7 v14 z`, fill:"#2b2a33"});
+    for (let i = 0; i <= 100; i++){
+      const x = X0 + (X1 - X0) * i / 100;
+      const big = i % 10 === 0, mid = i % 5 === 0;
+      const h = big ? 15 : mid ? 10 : 6;
+      el("line", {x1:x, y1:Y-h, x2:x, y2:Y+h, class: big ? "tk10" : mid ? "tk5" : "tk"});
+      if (big){
+        const v = i * step();
+        const t = el("text", {x:x, y:Y+40, class:"lab"}); t.textContent = fmt(v);
+        if (boldVals && boldVals.includes(v)){ t.style.fill = "#3a6fd8"; t.style.fontSize = "18px"; }
+      }
+    }
   }
   function flag(v, letter, color, showVal){
     const x = xOf(v), g = el("g", {});
@@ -163,28 +219,32 @@
     const t = el("text", {x:x, y:45, class:"flagTxt"}, g); t.textContent = letter;
     if (showVal){ const tv = el("text", {x:x, y:14, class:"flagVal"}, g); tv.textContent = fmt(v); }
   }
+  function pin(v, label){
+    const x = xOf(v), w = label.length * 12 + 22;
+    const rx = Math.max(4, Math.min(996 - w, x - w / 2));
+    el("line", {x1:x, y1:Y+2, x2:x, y2:56, class:"flagStick"});
+    el("circle", {cx:x, cy:Y, r:6, fill:"#2b2a33"});
+    el("rect", {x:rx, y:20, width:w, height:36, rx:8, class:"flagBox"});
+    const t = el("text", {x:rx + w / 2, y:45, class:"flagTxt"}); t.textContent = label;
+  }
   function marker(v, color){
-    const x = xOf(v);
-    el("circle", {cx:x, cy:Y, r:9, fill:color, stroke:"#fff", "stroke-width":3});
+    el("circle", {cx:xOf(v), cy:Y, r:9, fill:color, stroke:"#fff", "stroke-width":3});
   }
 
-  function draw(){
+  function setFb(cls, html){ const f = $("fb"); f.className = "feedback " + cls; f.innerHTML = html; }
+  function clearFb(){ $("fb").className = "feedback"; $("fb").innerHTML = ""; }
+
+  // =====================================================
+  //  Finden & Ablesen
+  // =====================================================
+  function drawFindRead(){
+    svg.setAttribute("viewBox", "0 0 1000 200");
     svg.innerHTML = "";
-    el("line", {x1:X0-12, y1:Y, x2:X1+22, y2:Y, class:"axis"});
-    el("path", {d:`M${X1+22} ${Y} l-12 -7 v14 z`, fill:"#2b2a33"});
-    for (let i = 0; i <= 100; i++){
-      const x = X0 + (X1 - X0) * i / 100;
-      const big = i % 10 === 0, mid = i % 5 === 0;
-      const h = big ? 15 : mid ? 10 : 6;
-      el("line", {x1:x, y1:Y-h, x2:x, y2:Y+h, class: big ? "tk10" : mid ? "tk5" : "tk"});
-      if (big){ const t = el("text", {x:x, y:Y+40, class:"lab"}); t.textContent = fmt(i * step()); }
-    }
-    // bereits erledigte Fahnen
+    drawAxis();
     results.forEach(r => {
       if (r.i === idx && !done) return;
       flag(r.v, r.letter, r.ok ? null : {fill:"#ffe9a8", edge:"#d9b84a"}, finished);
     });
-
     const t = numbers[idx];
     if (!finished){
       if (mode === "read"){
@@ -194,52 +254,45 @@
         if (done) flag(t, LETTERS[idx], {fill:"#bfe9cf", edge:"#2e9e5b"});
       }
     }
-
-    // Klickfläche
     if (mode === "find" && !done && !finished){
       const ghost = el("line", {x1:-50, y1:Y-30, x2:-50, y2:Y+30, class:"ghost"});
       const hit = el("rect", {x:X0-20, y:0, width:X1-X0+40, height:200, class:"hit"});
       const toV = ev => {
         const p = svg.createSVGPoint(); p.x = ev.clientX; p.y = ev.clientY;
         const sp = p.matrixTransform(svg.getScreenCTM().inverse());
-        let v = Math.round((sp.x - X0) / (X1 - X0) * 100) * step();
+        const v = Math.round((sp.x - X0) / (X1 - X0) * 100) * step();
         return Math.max(0, Math.min(max, v));
       };
       hit.addEventListener("pointermove", ev => { const x = xOf(toV(ev)); ghost.setAttribute("x1", x); ghost.setAttribute("x2", x); });
       hit.addEventListener("pointerleave", () => { ghost.setAttribute("x1", -50); ghost.setAttribute("x2", -50); });
-      hit.addEventListener("click", ev => answer(toV(ev)));
+      hit.addEventListener("click", ev => answerFR(toV(ev)));
     }
   }
 
-  // ---------- Spiellogik ----------
-  function setFb(cls, html){ const f = $("fb"); f.className = "feedback " + cls; f.innerHTML = html; }
-
-  function render(){
+  function renderFR(){
     const n = numbers.length;
+    show("scroller", true); show("roundRow", false); show("lineToggle", false);
+    show("ruleBox", false); show("tableBox", false);
     $("prog").textContent = finished ? `${n} von ${n}` : `Aufgabe ${idx + 1} von ${n}`;
     $("stars").textContent = results.map(r => r.ok ? "⭐" : "☆").join("");
-    $("readRow").style.display = (mode === "read" && !finished) ? "flex" : "none";
-    $("hintBtn").style.display = finished ? "none" : "";
-    if (finished){
-      $("task").innerHTML = "🎉 Geschafft!";
-    } else if (mode === "find"){
-      $("task").innerHTML = `Wo liegt die Zahl <span class="num">${fmt(numbers[idx])}</span>? Tippe auf den Zahlenstrahl.`;
-    } else {
-      $("task").innerHTML = `Welche Zahl steht bei <span class="fl">${LETTERS[idx]}</span>?`;
-    }
-    draw();
+    show("readRow", mode === "read" && !finished, "flex");
+    $("ans").placeholder = "Zahl";
+    show("hintBtn", !finished);
+    if (finished) $("task").innerHTML = "🎉 Geschafft!";
+    else if (mode === "find") $("task").innerHTML = `Wo liegt die Zahl <span class="num">${fmt(numbers[idx])}</span>? Tippe auf den Zahlenstrahl.`;
+    else $("task").innerHTML = `Welche Zahl steht bei <span class="fl">${LETTERS[idx]}</span>?`;
+    drawFindRead();
   }
 
-  function start(){
+  function startFR(){
     idx = 0; attempts = 0; done = false; results = []; tryMark = null; finished = false;
-    $("fb").className = "feedback"; $("next").style.display = "none"; $("hint").textContent = "";
-    $("ans").value = "";
+    clearFb(); show("next", false); $("hint").textContent = ""; $("ans").value = "";
     if (!numbers.length){ $("task").textContent = "Bitte unten Zahlen eintragen."; svg.innerHTML = ""; return; }
-    render();
+    renderFR();
     if (mode === "read") setTimeout(() => $("ans").focus(), 50);
   }
 
-  function answer(v){
+  function answerFR(v){
     if (done || finished) return;
     const t = numbers[idx], s = step();
     const diff = Math.abs(v - t);
@@ -249,7 +302,7 @@
       done = true; tryMark = mode === "find" ? {v, color:"#2e9e5b"} : null;
       results.push({i:idx, v:t, letter:LETTERS[idx], ok:true});
       setFb("ok", (attempts === 1 ? "✅ Super, genau richtig!" : "✅ Jetzt stimmt’s!") + ` <b>${LETTERS[idx]} = ${fmt(t)}</b>`);
-      showNext();
+      showNext(idx < numbers.length - 1 ? "Weiter ➜" : "Ergebnis ansehen ➜");
     } else if (attempts < 2){
       tryMark = mode === "find" ? {v, color:"#e89a14"} : null;
       let dir;
@@ -257,33 +310,25 @@
       else dir = v < t ? "Deine Zahl ist zu <b>klein</b>." : "Deine Zahl ist zu <b>groß</b>.";
       const pre = mode === "find" ? `Du hast auf <b>${fmt(v)}</b> getippt. ` : "";
       setFb("bad", (near ? "🤏 Ganz knapp! " : "🤔 Noch nicht. ") + pre + dir + " Versuch es noch einmal!");
-      if (mode === "read"){ $("ans").select(); }
+      if (mode === "read") $("ans").select();
     } else {
       done = true; tryMark = mode === "find" ? {v, color:"#e0573a"} : null;
       results.push({i:idx, v:t, letter:LETTERS[idx], ok:false});
       const pre = mode === "find" ? `Du hast auf ${fmt(v)} getippt. ` : `Du hast ${fmt(v)} geschrieben. `;
       setFb("info", `${pre}Die richtige Stelle ist grün markiert: <b>${LETTERS[idx]} = ${fmt(t)}</b>. Schau sie dir genau an!`);
-      showNext();
+      showNext(idx < numbers.length - 1 ? "Weiter ➜" : "Ergebnis ansehen ➜");
     }
-    render();
+    renderFR();
   }
 
-  function showNext(){
-    const b = $("next");
-    b.style.display = "";
-    b.textContent = idx < numbers.length - 1 ? "Weiter ➜" : "Ergebnis ansehen ➜";
-    setTimeout(() => b.focus(), 30);
-  }
-
-  function next(){
+  function nextFR(){
     if (idx < numbers.length - 1){
       idx++; attempts = 0; done = false; tryMark = null;
-      $("fb").className = "feedback"; $("next").style.display = "none"; $("hint").textContent = "";
-      $("ans").value = "";
-      render();
+      clearFb(); show("next", false); $("hint").textContent = ""; $("ans").value = "";
+      renderFR();
       if (mode === "read") $("ans").focus();
     } else {
-      finished = true; $("next").style.display = "none"; $("hint").textContent = "";
+      finished = true; show("next", false); $("hint").textContent = "";
       const okN = results.filter(r => r.ok).length;
       const list = results.map(r => `<span>${r.ok ? "⭐" : "☆"} ${r.letter} = ${fmt(r.v)}</span>`).join("");
       let extra = "";
@@ -291,21 +336,320 @@
         extra = `<p style="margin:10px 0 0">🧐 <b>Was fällt dir auf?</b> Wähle oben den nächsten Zahlenstrahl (bis ${fmt(max * 10)}) und spiele noch einmal. Vergleiche die Zahlen!</p>`;
       }
       setFb("ok", `Du hast <b>${okN} von ${numbers.length}</b> Zahlen richtig! <div class="summary">${list}</div>${extra}`);
-      render();
+      renderFR();
     }
   }
 
-  // ---------- Bedienung ----------
-  $("check").addEventListener("click", () => {
+  // =====================================================
+  //  Runden – entdeckend
+  // =====================================================
+  const R = {};
+  const U  = () => max / 10;                       // Rundungsstelle (beschriftete Striche)
+  const pU = () => Math.round(Math.log10(U()));    // Stellenindex der Rundungsstelle
+  const pD = () => pU() - 1;                       // entscheidende Stelle
+  const digitAt = (n, p) => Math.floor(n / Math.pow(10, p)) % 10;
+  const roundOf = n => Math.round(n / U()) * U();
+  const nameU = () => PLACE[pU()], nameD = () => PLACE[pD()];
+
+  function fmtHi(n, p){
+    const s = String(n); let out = "";
+    for (let i = 0; i < s.length; i++){
+      const k = s.length - 1 - i;
+      out += (k === p) ? `<span class="hd">${s[i]}</span>` : s[i];
+      if (k > 0 && k % 3 === 0) out += " ";
+    }
+    return out;
+  }
+
+  function makeTask(lead, d, lower){
+    const u = U();
+    return lead * u + d * u / 10 + lower * u / 100;
+  }
+  function makeExplore(){
+    const digits = [8, 2, 6, 4, 9, 5, 1, 7];
+    const leads = shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0, digits.length);
+    return digits.map((d, i) => {
+      let lower = Math.floor(Math.random() * 10);
+      if (d === 4) lower = 9;   // knapp unter der Mitte
+      if (d === 5) lower = 0;   // genau in der Mitte
+      return makeTask(leads[i], d, lower);
+    });
+  }
+  function makePro(){
+    const digits = shuffle([5, 4, 6, 3, 9, Math.floor(Math.random() * 10)]);
+    const leads = shuffle([0,1,2,3,4,5,6,7,8,9]);
+    return digits.map((d, i) => makeTask(leads[i], d, Math.floor(Math.random() * 10)));
+  }
+
+  function startRound(){
+    Object.assign(R, {phase:"explore", tasks:makeExplore(), i:0, attempts:0, done:false, showMid:false,
+      rows:[], res:[], q:1, wrongBtns:[], qWrong:0, colHi:false, lineShown:false, hiDigit:false, proRes:[]});
+    clearFb(); show("next", false); $("hint").textContent = ""; $("ans").value = "";
+    renderRound();
+  }
+
+  function drawRound(){
+    svg.setAttribute("viewBox", "0 0 1000 250");
+    svg.innerHTML = "";
+    const t = R.tasks[R.i], u = U();
+    const lo = Math.floor(t / u) * u, hi = lo + u, mid = lo + u / 2;
+    const showHelp = R.phase === "explore";
+    if (showHelp) el("rect", {x:xOf(lo), y:Y-30, width:xOf(hi)-xOf(lo), height:60, rx:6, fill:"#e6eefc"});
+    drawAxis(showHelp || R.done ? [lo, hi] : null);
+    if (R.showMid || R.done){
+      const xm = xOf(mid);
+      el("line", {x1:xm, y1:Y-36, x2:xm, y2:Y+50, stroke:"#d6336c", "stroke-width":3, "stroke-dasharray":"6 4"});
+      txt(xm, Y+68, "Mitte: " + fmt(mid), "#d6336c", 14);
+    }
+    if (R.done){
+      const xt = xOf(t);
+      const bracket = (a, b, y, color, label) => {
+        el("line", {x1:a, y1:y, x2:b, y2:y, stroke:color, "stroke-width":4});
+        el("line", {x1:a, y1:y-7, x2:a, y2:y+7, stroke:color, "stroke-width":3});
+        el("line", {x1:b, y1:y-7, x2:b, y2:y+7, stroke:color, "stroke-width":3});
+        txt((a + b) / 2, y - 7, label, color, 14);
+      };
+      bracket(xOf(lo), xt, Y+96, "#3a6fd8", fmt(t - lo));
+      bracket(xt, xOf(hi), Y+124, "#d9771a", fmt(hi - t));
+    }
+    pin(t, fmt(t));
+  }
+
+  function renderTable(){
+    const box = $("tableBox");
+    const nD = String(max).length;
+    const ps = []; for (let p = nD - 1; p >= 0; p--) ps.push(p);
+    const cls = p => (p === pU() ? "rcol" : "") + (R.colHi && p === pD() ? " dcol" : "");
+    let h = `<h2>🔬 Forscher-Tabelle</h2>`;
+    if (!R.rows.length){
+      box.innerHTML = h + `<p class="small">Hier sammelst du deine Ergebnisse. Schau später genau hin – vielleicht entdeckst du ein Muster!</p>`;
+      return;
+    }
+    h += `<p class="small">Die graue Spalte ist die Stelle, auf die du rundest (${nameU()}).</p>`;
+    h += `<div style="overflow-x:auto"><table class="ft"><tr>` + ps.map(p => `<th class="${cls(p)}" title="${PLACE[p]}">${SHORT[p]}</th>`).join("") + `<th></th><th>gerundet</th><th></th></tr>`;
+    R.rows.forEach(r => {
+      h += "<tr>" + ps.map(p => `<td class="dg ${cls(p)}">${(r.n >= Math.pow(10, p) || p === 0) ? digitAt(r.n, p) : ""}</td>`).join("");
+      h += `<td>≈</td><td><b>${fmt(r.r)}</b></td>`;
+      h += r.up ? `<td class="tagUp">⬆ aufgerundet${r.mid ? " (Mitte!)" : ""}</td>` : `<td class="tagDown">⬇ abgerundet</td>`;
+      h += "</tr>";
+    });
+    box.innerHTML = h + "</table></div>";
+  }
+
+  function renderRule(){
+    const b = $("ruleBox");
+    b.innerHTML = `<h2>🎓 Deine Entdeckung: die Rundungsregel</h2>
+      <p style="margin:0 0 8px">Beim Runden auf <b>${nameU()}</b> schaust du auf die <b style="color:var(--mid)">${nameD()}ziffer</b>, also die Stelle direkt rechts daneben.</p>
+      <div class="line"><span class="pill" style="background:var(--down)">0 1 2 3 4</span> → <b class="tagDown">abrunden ⬇</b> (die ${nameU()}ziffer bleibt gleich)</div>
+      <div class="line"><span class="pill" style="background:var(--up)">5 6 7 8 9</span> → <b class="tagUp">aufrunden ⬆</b> (die ${nameU()}ziffer wird um 1 größer)</div>
+      <p class="small" style="margin:8px 0 0">Bei der 5 liegt die Zahl genau in der Mitte. Dann wird nach Abmachung aufgerundet. Alle Stellen weiter rechts werden zu Nullen.</p>`;
+  }
+
+  function renderRound(){
+    show("readRow", false); show("roundRow", false); show("lineToggle", false); show("hintBtn", true);
+    show("tableBox", R.phase !== "pro" && R.phase !== "end");
+    show("ruleBox", R.phase === "rule" || R.phase === "pro" || R.phase === "end");
+    const rr = $("roundRow");
+    renderTable();
+    if (R.phase === "rule" || R.phase === "pro" || R.phase === "end") renderRule();
+
+    if (R.phase === "explore"){
+      const t = R.tasks[R.i], u = U(), lo = Math.floor(t / u) * u, hi = lo + u;
+      $("prog").textContent = `Forscher-Aufgabe ${R.i + 1} von ${R.tasks.length}`;
+      $("stars").textContent = R.res.map(ok => ok ? "⭐" : "☆").join("");
+      $("task").innerHTML = `Runde <span class="num">${fmt(t)}</span> auf <b>${nameU()}</b>. Welcher Nachbar ist näher?`;
+      show("scroller", true); drawRound();
+      if (!R.done){
+        rr.innerHTML = `<button class="btn big down" data-v="${lo}">⬅ ${fmt(lo)}</button><button class="btn big up" data-v="${hi}">${fmt(hi)} ➡</button>`;
+        rr.querySelectorAll("button").forEach(b => b.addEventListener("click", () => roundAnswer(Number(b.dataset.v))));
+        show("roundRow", true, "flex");
+      }
+    }
+    else if (R.phase === "discover"){
+      show("scroller", false); show("hintBtn", true);
+      $("prog").textContent = `Entdecker-Frage ${R.q} von 2`; $("stars").textContent = "";
+      if (R.q === 1){
+        $("task").innerHTML = `🔬 Schau dir deine Forscher-Tabelle an. <b>Welche Stelle entscheidet, ob du auf- oder abrundest?</b>`;
+        const nD = String(max).length; let h = "";
+        for (let p = nD - 1; p >= 0; p--) h += `<button class="btn choice ${R.wrongBtns.includes(p) ? "wrong" : ""}" data-p="${p}">${SHORT[p]} <span class="small">(${PLACE[p]})</span></button>`;
+        rr.innerHTML = h;
+        rr.querySelectorAll("button").forEach(b => b.addEventListener("click", () => discoverQ1(Number(b.dataset.p))));
+      } else {
+        $("task").innerHTML = `🔬 <b>Ab welcher ${nameD()}ziffer wird aufgerundet?</b> Schau in die Tabelle!`;
+        let h = "";
+        for (let d = 1; d <= 9; d++) h += `<button class="btn choice ${R.wrongBtns.includes(d) ? "wrong" : ""}" data-d="${d}">${d}</button>`;
+        rr.innerHTML = h;
+        rr.querySelectorAll("button").forEach(b => b.addEventListener("click", () => discoverQ2(Number(b.dataset.d))));
+      }
+      show("roundRow", true, "flex");
+    }
+    else if (R.phase === "rule"){
+      show("scroller", false); show("hintBtn", false);
+      $("prog").textContent = ""; $("stars").textContent = "";
+      $("task").innerHTML = "🎉 Du hast die Rundungsregel selbst entdeckt!";
+    }
+    else if (R.phase === "pro"){
+      const t = R.tasks[R.i];
+      $("prog").textContent = `Profi-Aufgabe ${R.i + 1} von ${R.tasks.length}`;
+      $("stars").textContent = R.proRes.map(ok => ok ? "⭐" : "☆").join("");
+      $("task").innerHTML = `Runde <span class="num">${(R.hiDigit || R.done) ? fmtHi(t, pD()) : fmt(t)}</span> auf <b>${nameU()}</b>.`;
+      show("lineToggle", true);
+      $("lineToggle").textContent = R.lineShown ? "📏 Zahlenstrahl verstecken" : "📏 Zahlenstrahl zeigen";
+      show("scroller", R.lineShown || R.done);
+      if (R.lineShown || R.done) drawRound();
+      $("ans").placeholder = "gerundet";
+      show("readRow", !R.done, "flex");
+    }
+    else if (R.phase === "end"){
+      show("scroller", false); show("hintBtn", false);
+      $("prog").textContent = ""; $("stars").textContent = R.proRes.map(ok => ok ? "⭐" : "☆").join("");
+      $("task").innerHTML = "🏆 Du bist Rundungs-Profi!";
+    }
+  }
+
+  function roundAnswer(choice){
+    if (R.done) return;
+    const t = R.tasks[R.i], u = U(), lo = Math.floor(t / u) * u, hi = lo + u, mid = lo + u / 2, r = roundOf(t);
+    R.attempts++;
+    const dist = `${fmt(t)} ist <b>${fmt(t - lo)}</b> von ${fmt(lo)} entfernt und <b>${fmt(hi - t)}</b> von ${fmt(hi)}.`;
+    const concl = r === hi ? `Also <b class="tagUp">aufrunden ⬆</b>: ${fmt(t)} ≈ <b>${fmt(r)}</b>` : `Also <b class="tagDown">abrunden ⬇</b>: ${fmt(t)} ≈ <b>${fmt(r)}</b>`;
+    let ok = null;
+    if (t === mid){
+      ok = true;
+      setFb("info", `⚖️ <b>Genau in der Mitte!</b> Beide Nachbarn sind ${fmt(u / 2)} entfernt. Dafür gibt es eine <b>Abmachung</b>: In der Mitte wird <b class="tagUp">aufgerundet ⬆</b>. ${fmt(t)} ≈ <b>${fmt(hi)}</b>` + (choice === lo ? "<br>Gut überlegt – das konntest du nicht wissen!" : ""));
+    } else if (choice === r){
+      ok = true;
+      setFb("ok", `${R.attempts === 1 ? "✅ Richtig!" : "✅ Jetzt stimmt’s!"} ${dist} ${concl}`);
+    } else if (R.attempts < 2){
+      R.showMid = true;
+      setFb("bad", `🤔 Schau genau hin: Die rote Linie zeigt die <b>Mitte</b>. Liegt ${fmt(t)} links oder rechts von der Mitte? Welcher Nachbar ist näher?`);
+      renderRound(); return;
+    } else {
+      ok = false;
+      setFb("info", `${dist} ${concl}. Schau dir die Abstände unten an!`);
+    }
+    R.done = true; R.res.push(ok);
+    R.rows.push({n:t, r, up: r === hi, mid: t === mid});
+    showNext(R.i < R.tasks.length - 1 ? "Nächste Zahl ➜" : "Zu den Entdecker-Fragen ➜");
+    renderRound();
+  }
+
+  function discoverQ1(p){
+    if (p === pD()){
+      R.colHi = true; R.q = 2; R.wrongBtns = []; R.qWrong = 0;
+      setFb("ok", `✅ Genau! Die <b>${nameD()}ziffer</b> entscheidet. Sie steht direkt rechts neben der Stelle, auf die du rundest. In der Tabelle ist sie jetzt rot markiert.`);
+    } else {
+      R.qWrong++; if (!R.wrongBtns.includes(p)) R.wrongBtns.push(p);
+      let m;
+      if (p === pU()) m = `Die ${PLACE[p]}stelle ist die Stelle, auf die du rundest. Sie verändert sich ja beim Runden. Welche Ziffer sagt dir, <i>ob</i> sie sich verändert?`;
+      else if (p > pU()) m = `Die ${PLACE[p]}ziffer bleibt beim Runden fast immer gleich. Sie entscheidet nichts.`;
+      else m = `Schau mal in die ${SHORT[p]}-Spalte: Dort stehen bei ⬆ und bei ⬇ ganz durcheinander große und kleine Ziffern. Die entscheidet nicht.`;
+      if (R.qWrong >= 3){
+        R.colHi = true; R.q = 2; R.wrongBtns = []; R.qWrong = 0;
+        setFb("info", `${m}<br>👉 Es ist die <b>${nameD()}ziffer</b>! Bei ⬆ ist sie immer groß, bei ⬇ immer klein. In der Tabelle ist sie jetzt rot markiert.`);
+      } else setFb("bad", "🤔 " + m);
+    }
+    renderRound();
+  }
+
+  function discoverQ2(d){
+    if (d === 5){
+      R.phase = "rule"; R.wrongBtns = [];
+      setFb("ok", `✅ Richtig! Ab der <b>5</b> wird aufgerundet. Bei 1, 2, 3, 4 wird abgerundet.`);
+      showNext("Profi-Runde starten 🚀");
+    } else {
+      R.qWrong++; if (!R.wrongBtns.includes(d)) R.wrongBtns.push(d);
+      const row = R.rows.find(r => digitAt(r.n, pD()) === d);
+      let m;
+      if (d < 5) m = row ? `Schau in die Tabelle: Bei ${fmt(row.n)} ist die ${nameD()}ziffer eine ${d} – und da wurde <b class="tagDown">abgerundet ⬇</b>.` : `Bei einer ${d} liegt die Zahl noch vor der Mitte – also näher am unteren Nachbarn.`;
+      else m = `Bei der ${d} wird zwar aufgerundet – aber schau mal, was bei einer <b>kleineren</b> Ziffer passiert ist!`;
+      if (R.qWrong >= 3){
+        R.phase = "rule"; R.wrongBtns = [];
+        setFb("info", `${m}<br>👉 Ab der <b>5</b> wird aufgerundet. Die 5 ist genau die Mitte!`);
+        showNext("Profi-Runde starten 🚀");
+      } else setFb("bad", "🤔 " + m);
+    }
+    renderRound();
+  }
+
+  function proCheck(){
+    if (R.done) return;
     const raw = $("ans").value.replace(/[\s. ']/g, "");
     if (!/^\d+$/.test(raw)){ setFb("bad", "Bitte schreibe eine Zahl."); return; }
-    answer(Number(raw));
+    const v = Number(raw), t = R.tasks[R.i], r = roundOf(t), d = digitAt(t, pD());
+    const why = `Die ${nameD()}ziffer ist <b style="color:var(--mid)">${d}</b> → ${d >= 5 ? '<b class="tagUp">aufrunden ⬆</b>' : '<b class="tagDown">abrunden ⬇</b>'}: ${fmt(t)} ≈ <b>${fmt(r)}</b>`;
+    R.attempts++;
+    if (v === r){
+      R.done = true; R.proRes.push(true);
+      setFb("ok", `${R.attempts === 1 ? "✅ Super!" : "✅ Jetzt stimmt’s!"} ${why}`);
+    } else if (R.attempts < 2){
+      R.hiDigit = true;
+      let m = `Schau auf die <b style="color:var(--mid)">${nameD()}ziffer</b> – ich habe sie markiert.`;
+      if (v % U() !== 0) m = `Beim Runden auf ${nameU()} werden alle Stellen rechts davon zu <b>Nullen</b>. ` + m;
+      setFb("bad", "🤔 Noch nicht. " + m);
+      renderRound(); $("ans").select(); return;
+    } else {
+      R.done = true; R.proRes.push(false);
+      setFb("info", why);
+    }
+    showNext(R.i < R.tasks.length - 1 ? "Weiter ➜" : "Ergebnis ansehen ➜");
+    renderRound();
+  }
+
+  function nextRound(){
+    clearFb(); show("next", false); $("hint").textContent = ""; $("ans").value = "";
+    if (R.phase === "explore"){
+      if (R.i < R.tasks.length - 1){ R.i++; R.attempts = 0; R.done = false; R.showMid = false; }
+      else { R.phase = "discover"; R.q = 1; R.wrongBtns = []; R.qWrong = 0; }
+    } else if (R.phase === "rule"){
+      Object.assign(R, {phase:"pro", tasks:makePro(), i:0, attempts:0, done:false, hiDigit:false, lineShown:false, proRes:[]});
+    } else if (R.phase === "pro"){
+      if (R.i < R.tasks.length - 1){ R.i++; R.attempts = 0; R.done = false; R.hiDigit = false; }
+      else {
+        R.phase = "end";
+        const okN = R.proRes.filter(Boolean).length;
+        const other = max === 10000 ? 100000 : 10000;
+        setFb("ok", `Du hast <b>${okN} von ${R.tasks.length}</b> Profi-Aufgaben richtig gerundet!
+          <p style="margin:10px 0 0">🧐 <b>Forscher-Auftrag:</b> Wähle oben den Zahlenstrahl bis ${fmt(other)}. Dort rundest du auf ${PLACE[Math.round(Math.log10(other / 10))]}. <b>Welche Ziffer entscheidet dann?</b> Stimmt deine Regel immer noch?</p>`);
+      }
+    }
+    renderRound();
+    if (R.phase === "pro") setTimeout(() => $("ans").focus(), 50);
+  }
+
+  // =====================================================
+  //  Allgemeine Bedienung
+  // =====================================================
+  function showNext(label){
+    const b = $("next"); b.textContent = label; show("next", true);
+    setTimeout(() => b.focus(), 30);
+  }
+  function start(){
+    clearFb(); show("next", false); $("hint").textContent = "";
+    if (mode === "round") startRound(); else startFR();
+  }
+
+  $("check").addEventListener("click", () => {
+    if (mode === "round"){ proCheck(); return; }
+    const raw = $("ans").value.replace(/[\s. ']/g, "");
+    if (!/^\d+$/.test(raw)){ setFb("bad", "Bitte schreibe eine Zahl."); return; }
+    answerFR(Number(raw));
   });
-  $("ans").addEventListener("keydown", e => { if (e.key === "Enter"){ done ? next() : $("check").click(); } });
-  $("next").addEventListener("click", next);
+  $("ans").addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    const isDone = mode === "round" ? R.done : done;
+    if (isDone) $("next").click(); else $("check").click();
+  });
+  $("next").addEventListener("click", () => mode === "round" ? nextRound() : nextFR());
   $("restart").addEventListener("click", start);
+  $("lineToggle").addEventListener("click", () => { R.lineShown = !R.lineShown; renderRound(); });
   $("hintBtn").addEventListener("click", () => {
-    $("hint").innerHTML = `💡 Zwischen zwei langen Strichen liegen <b>${fmt(max / 10)}</b>. Ein kleiner Strich bedeutet <b>${fmt(step())}</b>, der mittlere Strich liegt bei der Hälfte (<b>${fmt(max / 20)}</b>).`;
+    let h;
+    if (mode !== "round") h = `💡 Zwischen zwei langen Strichen liegen <b>${fmt(max / 10)}</b>. Ein kleiner Strich bedeutet <b>${fmt(step())}</b>, der mittlere Strich liegt bei der Hälfte (<b>${fmt(max / 20)}</b>).`;
+    else if (R.phase === "explore"){ R.showMid = true; renderRound(); h = `💡 Die rote Linie zeigt die <b>Mitte</b> zwischen den beiden Nachbarn. Auf welcher Seite der Mitte liegt deine Zahl?`; }
+    else if (R.phase === "discover") h = R.q === 1 ? `💡 Vergleiche die Zeilen mit <b class="tagUp">⬆</b> und die mit <b class="tagDown">⬇</b>. In welcher Spalte sind die Ziffern bei ⬆ immer groß und bei ⬇ immer klein?` : `💡 Suche in der Tabelle die Zeile mit „Mitte!“. Welche Ziffer steht dort in der roten Spalte?`;
+    else if (R.phase === "pro"){ R.hiDigit = true; renderRound(); h = `💡 Schau auf die <b style="color:var(--mid)">${nameD()}ziffer</b> und denk an deine Regel.`; }
+    $("hint").innerHTML = h || "";
   });
 
   function loadNumbers(list, msg){
@@ -317,7 +661,7 @@
     if (skipped) m += ` ${skipped} Zahl(en) liegen nicht zwischen 0 und ${fmt(max)} und werden übersprungen.`;
     if (valid.length > 26) m += " Es werden höchstens 26 Zahlen verwendet (A–Z).";
     $("tmsg").textContent = m.trim();
-    start();
+    if (mode !== "round") start();
   }
 
   document.querySelectorAll("#rangeSeg button").forEach(b => b.addEventListener("click", () => {
@@ -325,6 +669,7 @@
     max = Number(b.dataset.max);
     if (!custom) loadNumbers(isBook ? bookNums() : randomNums());
     else loadNumbers(parseList($("nums").value));
+    if (mode === "round") start();
   }));
   document.querySelectorAll("#modeSeg button").forEach(b => b.addEventListener("click", () => {
     document.querySelectorAll("#modeSeg button").forEach(x => x.classList.toggle("on", x === b));
@@ -333,7 +678,7 @@
   $("apply").addEventListener("click", () => {
     const list = parseList($("nums").value);
     if (!list.length){ $("tmsg").textContent = "Keine gültigen Zahlen gefunden."; return; }
-    custom = true; isBook = false; loadNumbers(list, "Übernommen ✓");
+    custom = true; isBook = false; loadNumbers(list, "Übernommen ✓ (gilt für Finden und Ablesen)");
   });
   $("book").addEventListener("click", () => { custom = false; isBook = true; loadNumbers(bookNums(), "Zahlen wie im Buch ✓"); });
   $("rand").addEventListener("click", () => { custom = false; isBook = false; loadNumbers(randomNums(), "Neue Zufallszahlen ✓"); });
