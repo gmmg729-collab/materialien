@@ -241,52 +241,52 @@
 
 <script>
 const NAMES={S:"Subjekt",P:"Prädikat",O:"Objekt (Wen/Was?)",D:"Objekt (Wem?)",Z:"Zeit",L:"Ort",A:"Angabe",X:"Satzglied"};
-const s=(str)=>str.split("|").map(x=>{const [w,t]=x.split("#");return {w:w.trim(),t:t.trim()};});
+const s=(str)=>str.split("|").map(x=>{const [w,t]=x.split("#");const tt=t.trim();return {w:w.trim(),t:tt[0],indef:tt.includes("!"),dir:tt.includes(">"),adv:tt.includes("~")};});
 
 const LEVELS=[
  {name:"Stufe 1",desc:"3 Satzglieder",hint:"Wer? – Was tut er/sie? – Wen oder was?",sentences:[
   s("Balou#S|liebt#P|die Klasse 4a#O"),
-  s("Mama#S|kocht#P|eine Suppe#O"),
+  s("Mama#S|kocht#P|eine Suppe#O!"),
   s("Papa#S|repariert#P|das Auto#O"),
-  s("Sven#S|spielt#P|Saxofon#O"),
-  s("Oma#S|backt#P|einen Kuchen#O"),
+  s("Sven#S|spielt#P|Saxofon#O!"),
+  s("Oma#S|backt#P|einen Kuchen#O!"),
   s("Opa#S|liest#P|seine Zeitung#O"),
-  s("Barbara#S|pflückt#P|Blumen#O"),
-  s("Marlies#S|bastelt#P|einen Drachen#O"),
-  s("der Lehrer#S|korrigiert#P|Hefte#O"),
-  s("meine Katze#S|jagt#P|Mäuse#O"),
-  s("Susanne#S|unterrichtet#P|Kinder#O")
+  s("Barbara#S|pflückt#P|Blumen#O!"),
+  s("Marlies#S|bastelt#P|einen Drachen#O!"),
+  s("der Lehrer#S|korrigiert#P|Hefte#O!"),
+  s("meine Katze#S|jagt#P|Mäuse#O!"),
+  s("Susanne#S|unterrichtet#P|Kinder#O!")
  ]},
  {name:"Stufe 2",desc:"4 Satzglieder",hint:"Jetzt kommt ein Satzglied dazu – zum Beispiel: Wann? Wo? Wie?",sentences:[
   s("Balou#S|besucht#P|heute#Z|die Klasse 4a#O"),
-  s("Mama#S|kocht#P|am Abend#Z|eine Suppe#O"),
+  s("Mama#S|kocht#P|am Abend#Z|eine Suppe#O!"),
   s("Lisa#S|reitet#P|am Nachmittag#Z|auf ihrem Pony#L"),
   s("Petra#S|spielt#P|mit dem Ball#A|im Gras#L"),
-  s("das Baby#S|krabbelt#P|schnell#A|zur Mama#L"),
-  s("mein Hund#S|bellt#P|laut#A|im Garten#L"),
+  s("das Baby#S|krabbelt#P|schnell#A~|zur Mama#L>"),
+  s("mein Hund#S|bellt#P|laut#A~|im Garten#L"),
   s("Verena#S|arbeitet#P|heute#Z|zu Hause#L"),
-  s("Frau Huber#S|tanzt#P|gerne#A|mit ihrem Mann#A"),
+  s("Frau Huber#S|tanzt#P|gerne#A~|mit ihrem Mann#A"),
   s("Opa#S|liest#P|jeden Morgen#Z|seine Zeitung#O"),
-  s("wir Kinder#S|malen#P|gerne#A|bunte Bilder#O")
+  s("wir Kinder#S|malen#P|gerne#A~|bunte Bilder#O!")
  ]},
  {name:"Stufe 3",desc:"5 Satzglieder",hint:"Fünf Satzglieder – da gibt es schon viele Möglichkeiten!",sentences:[
-  s("Balou#S|zeigt#P|heute#Z|der Klasse 4a#D|ein Buch#O"),
-  s("Oma#S|backt#P|am Sonntag#Z|in der Küche#L|einen Kuchen#O"),
+  s("Balou#S|zeigt#P|heute#Z|der Klasse 4a#D|ein Buch#O!"),
+  s("Oma#S|backt#P|am Sonntag#Z|in der Küche#L|einen Kuchen#O!"),
   s("Papa#S|repariert#P|am Samstag#Z|in der Garage#L|das Auto#O"),
-  s("Barbara#S|pflückt#P|im Frühling#Z|auf der Wiese#L|Blumen#O"),
+  s("Barbara#S|pflückt#P|im Frühling#Z|auf der Wiese#L|Blumen#O!"),
   s("der Lehrer#S|korrigiert#P|am Abend#Z|zu Hause#L|die Hefte#O"),
-  s("Sven#S|spielt#P|jeden Tag#Z|in seinem Zimmer#L|Saxofon#O"),
-  s("meine Katze#S|jagt#P|nachts#Z|im Garten#L|Mäuse#O"),
-  s("der Fahrer#S|fährt#P|am Morgen#Z|sehr schnell#A|über die Brücke#L"),
-  s("Marlies#S|bastelt#P|im Herbst#Z|mit ihrem Bruder#A|einen Drachen#O")
+  s("Sven#S|spielt#P|jeden Tag#Z|in seinem Zimmer#L|Saxofon#O!"),
+  s("meine Katze#S|jagt#P|nachts#Z|im Garten#L|Mäuse#O!"),
+  s("der Fahrer#S|fährt#P|am Morgen#Z|sehr schnell#A~|über die Brücke#L>"),
+  s("Marlies#S|bastelt#P|im Herbst#Z|mit ihrem Bruder#A|einen Drachen#O!")
  ]},
  {name:"Stufe 4",desc:"6 Satzglieder",hint:"Für Profis: sechs Satzglieder!",sentences:[
-  s("Balou#S|erzählt#P|heute#Z|der Klasse 4a#D|im Klassenzimmer#L|eine Geschichte#O"),
+  s("Balou#S|erzählt#P|heute#Z|der Klasse 4a#D|im Klassenzimmer#L|eine Geschichte#O!"),
   s("Susanne#S|unterrichtet#P|jeden Morgen#Z|in der Schule#L|mit viel Freude#A|die Kinder#O"),
-  s("Oma#S|backt#P|am Sonntag#Z|für die Familie#A|in der Küche#L|einen Kuchen#O"),
-  s("Lisa#S|reitet#P|am Nachmittag#Z|mit ihrer Freundin#A|auf ihrem Pony#L|über die Wiese#L"),
-  s("Papa#S|schenkt#P|zum Geburtstag#Z|der Mama#D|im Restaurant#L|einen Blumenstrauß#O"),
-  s("die Verkäuferin#S|berät#P|am Vormittag#Z|im Laden#L|sehr freundlich#A|die Kunden#O")
+  s("Oma#S|backt#P|am Sonntag#Z|für die Familie#A|in der Küche#L|einen Kuchen#O!"),
+  s("Lisa#S|reitet#P|am Nachmittag#Z|mit ihrer Freundin#A|auf ihrem Pony#L|über die Wiese#L>"),
+  s("Papa#S|schenkt#P|zum Geburtstag#Z|der Mama#D|im Restaurant#L|einen Blumenstrauß#O!"),
+  s("die Verkäuferin#S|berät#P|am Vormittag#Z|im Laden#L|sehr freundlich#A~|die Kunden#O")
  ]}
 ];
 
@@ -408,6 +408,29 @@ function permutations(arr){
   return out;
 }
 
+// Regeln für das Mittelfeld (alles hinter dem Verb):
+// 1. Das Subjekt steht direkt hinter dem Verb (steht schon fest).
+// 2. Wem? (Dativ) vor einem Objekt.
+// 3. Richtungsangaben (über die Brücke, zur Mama) stehen ganz am Ende.
+// 4. Unbestimmte Objekte (eine Suppe, Blumen) stehen nach der Zeitangabe und nach Wie-Wörtern (gerne, schnell).
+// 5. Wie-Wörter (gerne, sehr schnell) stehen nach der Zeitangabe.
+// 6. Die Zeitangabe steht nicht ganz am Schluss, wenn noch zwei oder mehr andere Satzglieder dahinter stehen.
+function tailOk(parts,tail){
+  const rest=tail.filter(i=>parts[i].t!=="S"); // ohne Subjekt
+  const pos=i=>rest.indexOf(i);
+  const R=rest.map(i=>parts[i]);
+  const idx=(f)=>rest.filter(i=>f(parts[i]));
+  for(const d of idx(p=>p.t==="D")) for(const o of idx(p=>p.t==="O")) if(pos(d)>pos(o)) return false;
+  for(const d of idx(p=>p.dir)) if(pos(d)!==rest.length-1) return false;
+  for(const z of idx(p=>p.t==="Z")){
+    for(const o of idx(p=>p.t==="O"&&p.indef)) if(pos(z)>pos(o)) return false;
+    for(const a of idx(p=>p.adv)) if(pos(z)>pos(a)) return false;
+    if(rest.length>=2&&pos(z)===rest.length-1) return false;
+  }
+  for(const a of idx(p=>p.adv)) for(const o of idx(p=>p.t==="O"&&p.indef)) if(pos(a)>pos(o)) return false;
+  return true;
+}
+
 function check(){
   const parts=cur();
   if(state.pending){fb("Beantworte zuerst die Frage im farbigen Feld!","info");return;}
@@ -425,12 +448,8 @@ function check(){
   if(v===1&&state.punct!=="."){fb("Das ist ein Aussagesatz (Verb an 2. Stelle). Welches Satzzeichen passt?","bad");return;}
   const subjOk = v===0 ? order[1]===si : (order[0]===si||order[2]===si);
   if(!subjOk){fb("Fast! Das klingt aber komisch. Tipp: Setze „"+parts[si].w+"“ direkt hinter das Verb.","info");return;}
-  // natürliche Reihenfolge hinter dem Verb: Subjekt, dann die übrigen Satzglieder wie im Ausgangssatz
-  const front = v===0 ? null : order[0];
-  const pi0=pIdx(parts);
-  const canonTail=[si,...parts.map((_,i)=>i).filter(i=>i!==si&&i!==pi0&&i!==front)].filter(i=>i!==front);
   const tail=order.slice(v+1);
-  if(tail.join()!==canonTail.join()){fb("Fast! Hinter dem Verb klingt die Reihenfolge noch komisch. Tausche die Karten hinter „"+parts[pi0].w+"“.","info");return;}
+  if(!tailOk(parts,tail)){fb("Fast! Hinter dem Verb klingt die Reihenfolge noch komisch. Tausche die Karten hinter „"+parts[pIdx(parts)].w+"“.","info");return;}
   const pr=prog();
   const k=render(parts,order,state.punct);
   if(pr.found.some(f=>render(parts,f.order,f.punct)===k)){fb("Diesen Satz hast du schon gefunden. Probier eine andere Reihenfolge!","info");return;}
