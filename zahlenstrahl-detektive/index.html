@@ -109,6 +109,10 @@
         <button data-mode="round">🎯 Runden</button>
       </div>
     </div>
+    <div class="group" id="placeGroup" style="display:none">
+      <span>Runden auf</span>
+      <div class="seg" id="placeSeg"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -117,6 +121,7 @@
       <div class="progress"><span id="prog"></span> &nbsp;<span class="stars" id="stars"></span></div>
     </div>
 
+    <div class="small" id="winInfo" style="display:none;margin-top:8px"></div>
     <div class="scroller" id="scroller"><svg id="svg" viewBox="0 0 1000 200" aria-label="Zahlenstrahl"></svg></div>
 
     <div class="row" id="roundRow" style="display:none"></div>
@@ -142,7 +147,7 @@
 
   <details class="teacher">
     <summary>Für Lehrkräfte</summary>
-    <p class="small"><b>Runden:</b> Die Kinder runden zuerst 8 Zahlen am Zahlenstrahl, mit Blick auf die Nachbarzahlen und die Mitte. Ihre Ergebnisse sammeln sie in der Forscher-Tabelle. Danach beantworten sie zwei Entdecker-Fragen: „Welche Stelle entscheidet?“ und „Ab welcher Ziffer wird aufgerundet?“. Erst dann erscheint die Rundungsregel. Zum Schluss folgt eine Profi-Runde ohne Zahlenstrahl. Gerundet wird jeweils auf die beschrifteten Striche: bis 1 000 auf Hunderter, bis 10 000 auf Tausender und so weiter. Ein Wechsel des Zahlenstrahls lädt zum Transfer ein.</p>
+    <p class="small"><b>Runden:</b> Die Kinder runden zuerst 8 Zahlen am Zahlenstrahl, mit Blick auf die Nachbarzahlen und die Mitte. Ihre Ergebnisse sammeln sie in der Forscher-Tabelle. Danach beantworten sie zwei Entdecker-Fragen: „Welche Stelle entscheidet?“ und „Ab welcher Ziffer wird aufgerundet?“. Erst dann erscheint die Rundungsregel. Zum Schluss folgt eine Profi-Runde ohne Zahlenstrahl. Mit „Runden auf“ wählst du die Rundungsstelle, mit „Zahlenstrahl“ die Größe der Zahlen. Ist die Rundungsstelle kleiner als der Zahlenraum, zum Beispiel Zahlen bis 1 000 000 auf Tausender gerundet, zeigt der Zahlenstrahl einen vergrößerten Ausschnitt rund um die Zahl. Ein Wechsel der Rundungsstelle lädt zum Transfer ein: Gilt die Regel immer noch?</p>
     <p class="small"><b>Finden &amp; Ablesen – eigene Zahlen:</b> Zahlen durch Komma oder Zeilenumbruch trennen. Punkte und Leerzeichen innerhalb einer Zahl sind erlaubt, z. B. „3.800“. Zahlen außerhalb des Zahlenstrahls werden übersprungen.</p>
     <textarea id="nums"></textarea>
     <div class="row">
@@ -169,8 +174,9 @@
   const $ = id => document.getElementById(id);
   const svg = $("svg");
   const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  let W0 = 0, WS = 10000;                 // sichtbarer Ausschnitt: Start und Länge
   const step = () => max / 100;
-  const xOf = v => X0 + (X1 - X0) * v / max;
+  const xOf = v => X0 + (X1 - X0) * (v - W0) / WS;
   const bookNums = () => BOOK.map(b => Math.round(b * max / 10000));
   const show = (id, on, disp) => { $(id).style.display = on ? (disp || "") : "none"; };
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -205,7 +211,7 @@
       const h = big ? 15 : mid ? 10 : 6;
       el("line", {x1:x, y1:Y-h, x2:x, y2:Y+h, class: big ? "tk10" : mid ? "tk5" : "tk"});
       if (big){
-        const v = i * step();
+        const v = W0 + i * WS / 100;
         const t = el("text", {x:x, y:Y+40, class:"lab"}); t.textContent = fmt(v);
         if (boldVals && boldVals.includes(v)){ t.style.fill = "#3a6fd8"; t.style.fontSize = "18px"; }
       }
@@ -240,6 +246,7 @@
   function drawFindRead(){
     svg.setAttribute("viewBox", "0 0 1000 200");
     svg.innerHTML = "";
+    W0 = 0; WS = max;
     drawAxis();
     results.forEach(r => {
       if (r.i === idx && !done) return;
@@ -272,7 +279,7 @@
   function renderFR(){
     const n = numbers.length;
     show("scroller", true); show("roundRow", false); show("lineToggle", false);
-    show("ruleBox", false); show("tableBox", false);
+    show("ruleBox", false); show("tableBox", false); show("winInfo", false); show("placeGroup", false);
     $("prog").textContent = finished ? `${n} von ${n}` : `Aufgabe ${idx + 1} von ${n}`;
     $("stars").textContent = results.map(r => r.ok ? "⭐" : "☆").join("");
     show("readRow", mode === "read" && !finished, "flex");
@@ -344,7 +351,8 @@
   //  Runden – entdeckend
   // =====================================================
   const R = {};
-  const U  = () => max / 10;                       // Rundungsstelle (beschriftete Striche)
+  let roundU = 1000;                                // gewählte Rundungsstelle
+  const U  = () => roundU;
   const pU = () => Math.round(Math.log10(U()));    // Stellenindex der Rundungsstelle
   const pD = () => pU() - 1;                       // entscheidende Stelle
   const digitAt = (n, p) => Math.floor(n / Math.pow(10, p)) % 10;
@@ -361,24 +369,45 @@
     return out;
   }
 
-  function makeTask(lead, d, lower){
-    const u = U();
-    return lead * u + d * u / 10 + lower * u / 100;
+  const rint = n => Math.floor(Math.random() * n);
+  // Zahl = höhere Stellen + Rundungsziffer + entscheidende Ziffer + Rest
+  function makeTask(lead, d, lower, exactMid){
+    const u = U(), blocks = Math.max(1, Math.round(max / (10 * u)));
+    const high = rint(blocks) * 10 * u;
+    const rest = (exactMid || u < 1000) ? 0 : rint(u / 100);
+    return high + lead * u + d * u / 10 + lower * u / 100 + rest;
   }
   function makeExplore(){
     const digits = [8, 2, 6, 4, 9, 5, 1, 7];
     const leads = shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0, digits.length);
     return digits.map((d, i) => {
-      let lower = Math.floor(Math.random() * 10);
+      let lower = rint(10);
       if (d === 4) lower = 9;   // knapp unter der Mitte
       if (d === 5) lower = 0;   // genau in der Mitte
-      return makeTask(leads[i], d, lower);
+      return makeTask(leads[i], d, lower, d === 5);
     });
   }
   function makePro(){
-    const digits = shuffle([5, 4, 6, 3, 9, Math.floor(Math.random() * 10)]);
+    const digits = shuffle([5, 4, 6, 3, 9, rint(10)]);
     const leads = shuffle([0,1,2,3,4,5,6,7,8,9]);
-    return digits.map((d, i) => makeTask(leads[i], d, Math.floor(Math.random() * 10)));
+    return digits.map((d, i) => makeTask(leads[i], d, rint(10)));
+  }
+
+  // Auswahl der Rundungsstelle
+  const validPlaces = () => [100, 1000, 10000, 100000];
+  function setMax(m){
+    max = m;
+    document.querySelectorAll("#rangeSeg button").forEach(x => x.classList.toggle("on", Number(x.dataset.max) === m));
+  }
+  function renderPlaces(){
+    if (roundU > max / 10) roundU = max / 10;
+    const seg = $("placeSeg");
+    seg.innerHTML = validPlaces().map(u => `<button data-u="${u}" class="${u === roundU ? "on" : ""}">${PLACE[Math.round(Math.log10(u))]}</button>`).join("");
+    seg.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      roundU = Number(b.dataset.u);
+      if (roundU > max / 10) setMax(roundU * 10);   // Zahlenraum passend vergrößern
+      renderPlaces(); startRound();
+    }));
   }
 
   function startRound(){
@@ -393,6 +422,7 @@
     svg.innerHTML = "";
     const t = R.tasks[R.i], u = U();
     const lo = Math.floor(t / u) * u, hi = lo + u, mid = lo + u / 2;
+    WS = 10 * u; W0 = Math.min(Math.floor(t / WS) * WS, Math.max(0, max - WS));
     const showHelp = R.phase === "explore";
     if (showHelp) el("rect", {x:xOf(lo), y:Y-30, width:xOf(hi)-xOf(lo), height:60, rx:6, fill:"#e6eefc"});
     drawAxis(showHelp || R.done ? [lo, hi] : null);
@@ -417,7 +447,7 @@
 
   function renderTable(){
     const box = $("tableBox");
-    const nD = String(max).length;
+    const nD = String(max - 1).length;
     const ps = []; for (let p = nD - 1; p >= 0; p--) ps.push(p);
     const cls = p => (p === pU() ? "rcol" : "") + (R.colHi && p === pD() ? " dcol" : "");
     let h = `<h2>🔬 Forscher-Tabelle</h2>`;
@@ -447,6 +477,7 @@
 
   function renderRound(){
     show("readRow", false); show("roundRow", false); show("lineToggle", false); show("hintBtn", true);
+    show("placeGroup", true, "flex"); show("winInfo", false);
     show("tableBox", R.phase !== "pro" && R.phase !== "end");
     show("ruleBox", R.phase === "rule" || R.phase === "pro" || R.phase === "end");
     const rr = $("roundRow");
@@ -458,7 +489,7 @@
       $("prog").textContent = `Forscher-Aufgabe ${R.i + 1} von ${R.tasks.length}`;
       $("stars").textContent = R.res.map(ok => ok ? "⭐" : "☆").join("");
       $("task").innerHTML = `Runde <span class="num">${fmt(t)}</span> auf <b>${nameU()}</b>. Welcher Nachbar ist näher?`;
-      show("scroller", true); drawRound();
+      show("scroller", true); drawRound(); showWin();
       if (!R.done){
         rr.innerHTML = `<button class="btn big down" data-v="${lo}">⬅ ${fmt(lo)}</button><button class="btn big up" data-v="${hi}">${fmt(hi)} ➡</button>`;
         rr.querySelectorAll("button").forEach(b => b.addEventListener("click", () => roundAnswer(Number(b.dataset.v))));
@@ -470,7 +501,7 @@
       $("prog").textContent = `Entdecker-Frage ${R.q} von 2`; $("stars").textContent = "";
       if (R.q === 1){
         $("task").innerHTML = `🔬 Schau dir deine Forscher-Tabelle an. <b>Welche Stelle entscheidet, ob du auf- oder abrundest?</b>`;
-        const nD = String(max).length; let h = "";
+        const nD = String(max - 1).length; let h = "";
         for (let p = nD - 1; p >= 0; p--) h += `<button class="btn choice ${R.wrongBtns.includes(p) ? "wrong" : ""}" data-p="${p}">${SHORT[p]} <span class="small">(${PLACE[p]})</span></button>`;
         rr.innerHTML = h;
         rr.querySelectorAll("button").forEach(b => b.addEventListener("click", () => discoverQ1(Number(b.dataset.p))));
@@ -496,7 +527,7 @@
       show("lineToggle", true);
       $("lineToggle").textContent = R.lineShown ? "📏 Zahlenstrahl verstecken" : "📏 Zahlenstrahl zeigen";
       show("scroller", R.lineShown || R.done);
-      if (R.lineShown || R.done) drawRound();
+      if (R.lineShown || R.done){ drawRound(); showWin(); }
       $("ans").placeholder = "gerundet";
       show("readRow", !R.done, "flex");
     }
@@ -504,6 +535,13 @@
       show("scroller", false); show("hintBtn", false);
       $("prog").textContent = ""; $("stars").textContent = R.proRes.map(ok => ok ? "⭐" : "☆").join("");
       $("task").innerHTML = "🏆 Du bist Rundungs-Profi!";
+    }
+  }
+
+  function showWin(){
+    if (WS < max){
+      $("winInfo").innerHTML = `🔍 Vergrößerter Ausschnitt des Zahlenstrahls: von <b>${fmt(W0)}</b> bis <b>${fmt(W0 + WS)}</b>`;
+      show("winInfo", true);
     }
   }
 
@@ -608,9 +646,12 @@
       else {
         R.phase = "end";
         const okN = R.proRes.filter(Boolean).length;
-        const other = max === 10000 ? 100000 : 10000;
+        const others = validPlaces().filter(u => u !== roundU && u >= 1000);
+        const tip = others.length
+          ? `Stelle oben bei „Runden auf“ <b>${others.map(u => PLACE[Math.round(Math.log10(u))]).join("</b> oder <b>")}</b> ein.`
+          : `Wähle oben einen größeren Zahlenstrahl und eine andere Rundungsstelle.`;
         setFb("ok", `Du hast <b>${okN} von ${R.tasks.length}</b> Profi-Aufgaben richtig gerundet!
-          <p style="margin:10px 0 0">🧐 <b>Forscher-Auftrag:</b> Wähle oben den Zahlenstrahl bis ${fmt(other)}. Dort rundest du auf ${PLACE[Math.round(Math.log10(other / 10))]}. <b>Welche Ziffer entscheidet dann?</b> Stimmt deine Regel immer noch?</p>`);
+          <p style="margin:10px 0 0">🧐 <b>Forscher-Auftrag:</b> ${tip} <b>Welche Ziffer entscheidet dann?</b> Stimmt deine Regel immer noch?</p>`);
       }
     }
     renderRound();
@@ -669,6 +710,7 @@
     max = Number(b.dataset.max);
     if (!custom) loadNumbers(isBook ? bookNums() : randomNums());
     else loadNumbers(parseList($("nums").value));
+    renderPlaces();
     if (mode === "round") start();
   }));
   document.querySelectorAll("#modeSeg button").forEach(b => b.addEventListener("click", () => {
@@ -683,6 +725,7 @@
   $("book").addEventListener("click", () => { custom = false; isBook = true; loadNumbers(bookNums(), "Zahlen wie im Buch ✓"); });
   $("rand").addEventListener("click", () => { custom = false; isBook = false; loadNumbers(randomNums(), "Neue Zufallszahlen ✓"); });
 
+  renderPlaces();
   loadNumbers(bookNums());
 })();
 </script>
