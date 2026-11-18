@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Satzglieder-Detektive – Die Umstellprobe</title>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fdf8ef; --card:#ffffff; --ink:#2b2a33; --muted:#77738a; --line:#e6dfd1;
+    --accent:#2f7d6d; --accent2:#e9a23b; --ok:#2e9a58; --bad:#d0533f;
+    --S:#7fb8ff; --P:#ff7366; --O:#f7b3dc; --D:#6fd3c4; --Z:#9fdc7a; --L:#ffb867; --A:#c9a3ff; --X:#d9d4e6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Andika","Comic Sans MS",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:20px}
+  header{background:var(--accent);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{margin:0;font-size:28px}
+  header .sub{opacity:.9;font-size:17px}
+  main{max-width:1050px;margin:0 auto;padding:18px}
+  .levels{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .levels button{border:3px solid var(--accent);background:#fff;color:var(--accent);border-radius:14px;padding:8px 16px;font:inherit;font-size:18px;cursor:pointer}
+  .levels button.active{background:var(--accent);color:#fff}
+  .levels button small{display:block;font-size:13px;opacity:.85}
+  .panel{background:var(--card);border-radius:20px;box-shadow:0 3px 0 var(--line);border:2px solid var(--line);padding:18px 20px;margin-bottom:16px}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .spacer{flex:1}
+  .nav button,.tool{border:none;background:#efe9dc;border-radius:12px;padding:8px 14px;font:inherit;font-size:18px;cursor:pointer}
+  .nav button:hover,.tool:hover{background:#e4dccb}
+  .dots{display:flex;gap:6px;flex-wrap:wrap}
+  .dot{width:16px;height:16px;border-radius:50%;background:#e4dccb;cursor:pointer;border:2px solid transparent}
+  .dot.cur{border-color:var(--accent)}
+  .dot.done{background:var(--ok)}
+  .subjtoggle{display:flex;align-items:center;gap:8px;background:#e3efff;border:3px solid #3d7fd9;border-radius:14px;padding:8px 14px;font-size:20px;font-weight:700;cursor:pointer}
+  .subjtoggle input{width:24px;height:24px}
+  .subjq{margin-top:14px;background:#e3efff;border:3px solid #3d7fd9;border-radius:16px;padding:14px 16px;animation:pop .3s}
+  .subjq .q{font-size:26px;margin-bottom:10px}
+  .subjq .q b{color:#1f5bb0}
+  .subjq .cards{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .chunk.subjmark{background:var(--S)!important;border-color:#3d7fd9!important}
+  .chunk.subjmark .nm{display:block}
+  .subjtoggle.pred,.subjq.pred{background:#ffe3de;border-color:#d0533f}
+  .subjq.pred .q b{color:#b3301b}
+  .chunk.predmark{background:var(--P)!important;border-color:#d0533f!important}
+  .chunk.predmark .nm{display:block}
+  .label{color:var(--muted);font-size:16px;margin-bottom:6px}
+  .pool,.build{min-height:96px;border-radius:16px;padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .pool{background:#f6f1e6}
+  .build{background:#fff;border:3px dashed #cfc6b2}
+  .build.empty::before{content:"Tippe die Wortkarten der Reihe nach an …";color:#b3ab98}
+  .tok{background:#fff;border:2px solid #cfc6b2;border-bottom-width:5px;border-radius:14px;padding:12px 20px;font:inherit;font-size:30px;cursor:pointer;user-select:none;transition:transform .1s}
+  .tok:hover{transform:translateY(-2px)}
+  .tok.chunkmode{background:#fffbea;border-color:var(--accent2)}
+  .build .tok{background:#eef7f4;border-color:var(--accent)}
+  .punct{display:flex;gap:10px;align-items:center}
+  .punct button{width:62px;height:62px;border-radius:50%;border:3px solid #cfc6b2;background:#fff;font:inherit;font-size:38px;font-weight:700;cursor:pointer;line-height:1}
+  .punct button.sel{border-color:var(--accent);background:var(--accent);color:#fff}
+  .check{background:var(--accent2);color:#fff;border:none;border-radius:16px;padding:14px 26px;font:inherit;font-size:24px;font-weight:700;cursor:pointer;box-shadow:0 4px 0 #c1801f}
+  .check:active{transform:translateY(3px);box-shadow:0 1px 0 #c1801f}
+  .fb{min-height:34px;margin-top:12px;font-size:21px;padding:8px 14px;border-radius:12px}
+  .fb.ok{background:#e3f5ea;color:#1d6b3b}
+  .fb.bad{background:#fbe7e3;color:#9c3524}
+  .fb.info{background:#fff4dc;color:#7a5410}
+  .goals{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .goal{border:2px solid #cfc6b2;border-radius:999px;padding:4px 12px;font-size:17px;background:#fff}
+  .goal.done{background:var(--ok);border-color:var(--ok);color:#fff}
+  .found{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .found li{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:22px;animation:pop .35s}
+  .found .nr{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+  .found .tag{font-size:14px;color:var(--muted)}
+  .chunk{display:inline-flex;flex-direction:column;align-items:center;border:2px solid #9c9584;border-radius:10px;padding:3px 10px;background:#fff}
+  .chunk .nm{font-size:12px;color:#555;display:none}
+  body.colors .chunk{border-color:rgba(0,0,0,.25)}
+  body.colors .chunk .nm{display:block}
+  body.colors .chunk.S{background:var(--S)} body.colors .chunk.P{background:var(--P)} body.colors .chunk.O{background:var(--O)}
+  body.colors .chunk.D{background:var(--D)} body.colors .chunk.Z{background:var(--Z)} body.colors .chunk.L{background:var(--L)}
+  body.colors .chunk.A{background:var(--A)} body.colors .chunk.X{background:var(--X)}
+  .pm{font-size:30px;font-weight:700;margin-left:-2px}
+  .opts{display:flex;gap:18px;flex-wrap:wrap;font-size:17px}
+  .opts label{display:flex;align-items:center;gap:6px;cursor:pointer}
+  .opts input{width:22px;height:22px}
+  .legend{display:none;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:15px}
+  body.colors .legend{display:flex}
+  .legend span{padding:3px 10px;border-radius:8px}
+  details{font-size:17px}
+  details input[type=text]{width:100%;font:inherit;font-size:20px;padding:8px 10px;border:2px solid #cfc6b2;border-radius:10px;margin:8px 0}
+  .win{text-align:center;font-size:26px;font-weight:700;color:var(--ok);margin-top:10px}
+  .win button{margin-top:8px}
+  @keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .shake{animation:shake .3s}
+  .confetti{position:fixed;top:-20px;width:12px;height:16px;border-radius:3px;pointer-events:none;animation:fall linear forwards;z-index:9}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+  /* Panda-Maskottchen */
+  #panda{position:fixed;right:18px;bottom:14px;z-index:8;display:flex;align-items:flex-end;gap:8px;pointer-events:none}
+  #panda .bubble{pointer-events:auto;max-width:240px;background:#fff;border:3px solid #2b2a33;border-radius:18px;padding:10px 14px;font-size:19px;position:relative;margin-bottom:70px;box-shadow:0 3px 0 rgba(0,0,0,.15);transition:opacity .3s}
+  #panda .bubble::after{content:"";position:absolute;right:-14px;bottom:18px;border:8px solid transparent;border-left:10px solid #2b2a33}
+  #panda .bubble.hide{opacity:0}
+  #panda .body{position:relative;width:130px;pointer-events:auto;cursor:pointer}
+  #panda svg{width:130px;height:auto;display:block}
+  #panda .streak{position:absolute;top:-6px;left:-10px;background:#ff7a3d;color:#fff;font-weight:700;border-radius:999px;padding:3px 10px;font-size:17px;border:3px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+  #panda .streak.zero{background:#b9b2a3}
+  #panda .best{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--muted);white-space:nowrap;background:var(--bg);padding:0 6px;border-radius:8px}
+  .p-jump{animation:pjump .6s}
+  .p-dance{animation:pdance 1.2s}
+  .p-wobble{animation:pwob .5s}
+  @keyframes pjump{0%,100%{transform:none}40%{transform:translateY(-26px)}60%{transform:translateY(-26px) rotate(-6deg)}}
+  @keyframes pdance{0%,100%{transform:none}20%{transform:rotate(-12deg) translateY(-10px)}40%{transform:rotate(12deg)}60%{transform:rotate(-12deg) translateY(-10px)}80%{transform:rotate(12deg)}}
+  @keyframes pwob{0%,100%{transform:none}30%{transform:rotate(-5deg)}70%{transform:rotate(5deg)}}
+  main{padding-bottom:180px}
+  @media (max-width:700px){#panda .body,#panda svg{width:90px}#panda .bubble{font-size:16px;max-width:170px;margin-bottom:46px}}
+  /* Subjekt immer blau, Prädikat immer rot */
+  .chunk.S{background:var(--S);border-color:#3d7fd9}
+  .chunk.P{background:var(--P);border-color:#c63d2c}
+  .chunk.S .nm,.chunk.P .nm{display:block}
+  .fb .chunk{font-size:20px;padding:1px 8px;vertical-align:middle;margin:0 1px}
+  .fb .chunk .nm{font-size:11px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔎 Satzglieder-Detektive</h1>
+  <div class="sub">Stelle die Wörter um – wie viele neue Sätze findest du?</div>
+</header>
+<main>
+  <div class="levels" id="levels"></div>
+
+  <div class="panel">
+    <div class="row nav">
+      <button id="prev">◀</button>
+      <div class="dots" id="dots"></div>
+      <button id="next">▶</button>
+      <div class="spacer"></div>
+      <div id="counter" class="label" style="margin:0"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="label" id="levelHint" style="margin:0"></div>
+      <div class="spacer"></div>
+      <label class="subjtoggle"><input type="checkbox" id="optSubj"> 🔍 Subjektfinder</label>
+      <label class="subjtoggle pred"><input type="checkbox" id="optPred"> 🔎 Prädikatfinder</label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="label">Diese Karten kannst du umstellen:</div>
+    <div class="pool" id="pool"></div>
+    <div class="label" style="margin-top:14px">Dein neuer Satz</div>
+    <div class="row" style="align-items:stretch">
+      <div class="build empty" id="build" style="flex:1"></div>
+      <div class="punct" id="punct">
+        <button data-p=".">.</button>
+        <button data-p="?">?</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="check" id="check">Prüfen ✔</button>
+      <button class="tool" id="reset">↺ Karten zurück</button>
+      <div class="spacer"></div>
+    </div>
+    <div class="fb" id="fb"></div>
+    <div id="subjq" class="subjq" style="display:none"></div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <b style="font-size:22px">Gefundene Sätze</b>
+      <div class="spacer"></div>
+    </div>
+    <div class="label" style="margin-top:6px">Ziel: Jede Karte darf einmal ganz vorne stehen – und finde eine Frage!</div>
+    <div class="goals" id="goals"></div>
+    <ul class="found" id="found" style="margin-top:14px"></ul>
+    <div id="win"></div>
+  </div>
+
+  <div class="panel">
+    <details>
+    <summary>Für Lehrkräfte</summary>
+    <div class="opts" style="margin-top:10px">
+      <label><input type="checkbox" id="optColors"> Satzglieder einfärben &amp; benennen</label>
+    </div>
+    <div class="legend">
+      <span style="background:var(--S)">Subjekt – Wer? Was?</span>
+      <span style="background:var(--P)">Prädikat – Was tut …?</span>
+      <span style="background:var(--O)">Objekt – Wen? Was?</span>
+      <span style="background:var(--D)">Objekt – Wem?</span>
+      <span style="background:var(--Z)">Zeit – Wann?</span>
+      <span style="background:var(--L)">Ort – Wo? Wohin?</span>
+      <span style="background:var(--A)">Angabe – Wie? Mit wem? Für wen?</span>
+    </div>
+    <details style="margin-top:14px">
+      <summary>Eigenen Satz eingeben</summary>
+      <p>Satzglieder mit <b>|</b> trennen. Das <b>Subjekt</b> steht zuerst, das <b>Verb</b> als Zweites.<br>
+      Beispiel: <i>Balou | singt | heute | mit der Klasse 4a | ein Lied</i></p>
+      <input type="text" id="ownInput" placeholder="Subjekt | Verb | … | …">
+      <button class="tool" id="ownBtn">Satz übernehmen</button>
+      <span id="ownMsg" class="label"></span>
+    </details>
+    </details>
+  </div>
+</main>
+
+<div id="panda">
+  <div class="bubble" id="pBubble">Hallo, ich bin <b>Balou</b>! 🐼 Stell die Karten um – ich feuere dich an!</div>
+  <div class="body" id="pBody" title="Balou">
+    <div class="streak zero" id="pStreak">🔥 0</div>
+    <svg viewBox="0 0 140 150" xmlns="http://www.w3.org/2000/svg">
+      <!-- Körper -->
+      <ellipse cx="70" cy="122" rx="44" ry="28" fill="#2b2a33"/>
+      <ellipse cx="70" cy="124" rx="28" ry="20" fill="#fff"/>
+      <!-- Arme -->
+      <g id="pArms">
+        <ellipse id="pArmL" cx="28" cy="112" rx="11" ry="20" fill="#2b2a33" transform="rotate(25 28 112)"/>
+        <ellipse id="pArmR" cx="112" cy="112" rx="11" ry="20" fill="#2b2a33" transform="rotate(-25 112 112)"/>
+      </g>
+      <!-- Ohren -->
+      <circle cx="30" cy="26" r="17" fill="#2b2a33"/>
+      <circle cx="110" cy="26" r="17" fill="#2b2a33"/>
+      <!-- Kopf -->
+      <circle cx="70" cy="60" r="48" fill="#fff" stroke="#2b2a33" stroke-width="3"/>
+      <!-- Augenflecken -->
+      <ellipse cx="50" cy="56" rx="14" ry="17" fill="#2b2a33" transform="rotate(-25 50 56)"/>
+      <ellipse cx="90" cy="56" rx="14" ry="17" fill="#2b2a33" transform="rotate(25 90 56)"/>
+      <g id="pEyes">
+        <circle cx="52" cy="55" r="6" fill="#fff"/><circle cx="88" cy="55" r="6" fill="#fff"/>
+        <circle cx="53" cy="56" r="3" fill="#2b2a33"/><circle cx="87" cy="56" r="3" fill="#2b2a33"/>
+      </g>
+      <g id="pEyesHappy" style="display:none">
+        <path d="M45 57 q7 -9 14 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M81 57 q7 -9 14 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- Wangen -->
+      <circle cx="38" cy="78" r="7" fill="#ffb3b3" opacity=".8"/>
+      <circle cx="102" cy="78" r="7" fill="#ffb3b3" opacity=".8"/>
+      <!-- Nase & Mund -->
+      <ellipse cx="70" cy="74" rx="7" ry="5" fill="#2b2a33"/>
+      <path id="pMouth" d="M60 84 q10 9 20 0" stroke="#2b2a33" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="best" id="pBest">Rekord: 0</div>
+  </div>
+</div>
+
+<script>
+const NAMES={S:"Subjekt",P:"Prädikat",O:"Objekt (Wen/Was?)",D:"Objekt (Wem?)",Z:"Zeit",L:"Ort",A:"Angabe",X:"Satzglied"};
+const s=(str)=>str.split("|").map(x=>{const [w,t]=x.split("#");return {w:w.trim(),t:t.trim()};});
+
+const LEVELS=[
+ {name:"Stufe 1",desc:"3 Satzglieder",hint:"Wer? – Was tut er/sie? – Wen oder was?",sentences:[
+  s("Balou#S|liebt#P|die Klasse 4a#O"),
+  s("Mama#S|kocht#P|eine Suppe#O"),
+  s("Papa#S|repariert#P|das Auto#O"),
+  s("Sven#S|spielt#P|Saxofon#O"),
+  s("Oma#S|backt#P|einen Kuchen#O"),
+  s("Opa#S|liest#P|seine Zeitung#O"),
+  s("Barbara#S|pflückt#P|Blumen#O"),
+  s("Marlies#S|bastelt#P|einen Drachen#O"),
+  s("der Lehrer#S|korrigiert#P|Hefte#O"),
+  s("meine Katze#S|jagt#P|Mäuse#O"),
+  s("Susanne#S|unterrichtet#P|Kinder#O")
+ ]},
+ {name:"Stufe 2",desc:"4 Satzglieder",hint:"Jetzt kommt ein Satzglied dazu – zum Beispiel: Wann? Wo? Wie?",sentences:[
+  s("Balou#S|besucht#P|heute#Z|die Klasse 4a#O"),
+  s("Mama#S|kocht#P|am Abend#Z|eine Suppe#O"),
+  s("Lisa#S|reitet#P|am Nachmittag#Z|auf ihrem Pony#L"),
+  s("Petra#S|spielt#P|mit dem Ball#A|im Gras#L"),
+  s("das Baby#S|krabbelt#P|schnell#A|zur Mama#L"),
+  s("mein Hund#S|bellt#P|laut#A|im Garten#L"),
+  s("Verena#S|arbeitet#P|heute#Z|zu Hause#L"),
+  s("Frau Huber#S|tanzt#P|gerne#A|mit ihrem Mann#A"),
+  s("Opa#S|liest#P|jeden Morgen#Z|seine Zeitung#O"),
+  s("wir Kinder#S|malen#P|gerne#A|bunte Bilder#O")
+ ]},
+ {name:"Stufe 3",desc:"5 Satzglieder",hint:"Fünf Satzglieder – da gibt es schon viele Möglichkeiten!",sentences:[
+  s("Balou#S|zeigt#P|heute#Z|der Klasse 4a#D|ein Buch#O"),
+  s("Oma#S|backt#P|am Sonntag#Z|in der Küche#L|einen Kuchen#O"),
+  s("Papa#S|repariert#P|am Samstag#Z|in der Garage#L|das Auto#O"),
+  s("Barbara#S|pflückt#P|im Frühling#Z|auf der Wiese#L|Blumen#O"),
+  s("der Lehrer#S|korrigiert#P|am Abend#Z|zu Hause#L|die Hefte#O"),
+  s("Sven#S|spielt#P|jeden Tag#Z|in seinem Zimmer#L|Saxofon#O"),
+  s("meine Katze#S|jagt#P|nachts#Z|im Garten#L|Mäuse#O"),
+  s("der Fahrer#S|fährt#P|am Morgen#Z|sehr schnell#A|über die Brücke#L"),
+  s("Marlies#S|bastelt#P|im Herbst#Z|mit ihrem Bruder#A|einen Drachen#O")
+ ]},
+ {name:"Stufe 4",desc:"6 Satzglieder",hint:"Für Profis: sechs Satzglieder!",sentences:[
+  s("Balou#S|erzählt#P|heute#Z|der Klasse 4a#D|im Klassenzimmer#L|eine Geschichte#O"),
+  s("Susanne#S|unterrichtet#P|jeden Morgen#Z|in der Schule#L|mit viel Freude#A|die Kinder#O"),
+  s("Oma#S|backt#P|am Sonntag#Z|für die Familie#A|in der Küche#L|einen Kuchen#O"),
+  s("Lisa#S|reitet#P|am Nachmittag#Z|mit ihrer Freundin#A|auf ihrem Pony#L|über die Wiese#L"),
+  s("Papa#S|schenkt#P|zum Geburtstag#Z|der Mama#D|im Restaurant#L|einen Blumenstrauß#O"),
+  s("die Verkäuferin#S|berät#P|am Vormittag#Z|im Laden#L|sehr freundlich#A|die Kunden#O")
+ ]}
+];
+
+const state={lvl:0,idx:0,progress:{},pool:[],built:[],punct:null,fails:0,own:null};
+const $=id=>document.getElementById(id);
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+
+function cur(){return state.own||LEVELS[state.lvl].sentences[state.idx];}
+function key(){return state.own?"own":state.lvl+"-"+state.idx;}
+function sIdx(parts){return parts.findIndex(p=>p.t==="S");}
+function pIdx(parts){return parts.findIndex(p=>p.t==="P");}
+function render(parts,order,punct){return cap(order.map(i=>parts[i].w).join(" "))+punct;}
+
+function prog(){
+  const k=key();
+  if(!state.progress[k]){
+    const parts=cur();
+    state.progress[k]={found:[],fronts:new Set(),q:false};
+  }
+  return state.progress[k];
+}
+function isDone(k,parts){
+  const p=state.progress[k]; if(!p) return false;
+  const need=parts.map((x,i)=>i).filter(i=>parts[i].t!=="P");
+  return p.q && need.every(i=>p.fronts.has(i));
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function setupTokens(){
+  const parts=cur(); const chunks=true; let toks=[]; let id=0;
+  parts.forEach(p=>toks.push({id:id++,w:p.w}));
+  const orig=toks.map(t=>t.w).join(" ");
+  let tries=0;
+  do{shuffle(toks);tries++;}while(toks.length>1&&toks.map(t=>t.w).join(" ")===orig&&tries<20);
+  state.pool=toks; state.built=[]; state.punct=null; state.chunkMode=chunks;
+  state.pending=null; const q=document.getElementById("subjq"); if(q) q.style.display="none";
+}
+
+function draw(){
+  // levels
+  const L=$("levels"); L.innerHTML="";
+  LEVELS.forEach((lv,i)=>{
+    const done=lv.sentences.filter((ss,j)=>isDone(i+"-"+j,ss)).length;
+    const b=document.createElement("button");
+    b.className=(!state.own&&i===state.lvl)?"active":"";
+    b.innerHTML=`${lv.name} ⭐${done}/${lv.sentences.length}<small>${lv.desc}</small>`;
+    b.onclick=()=>{state.own=null;state.lvl=i;state.idx=0;setupTokens();clearFb();draw();};
+    L.appendChild(b);
+  });
+  if(state.own){const b=document.createElement("button");b.className="active";b.innerHTML=`Eigener Satz<small>${state.own.length} Satzglieder</small>`;L.appendChild(b);}
+
+  const parts=cur(); const lv=LEVELS[state.lvl];
+  // dots
+  const D=$("dots"); D.innerHTML="";
+  if(!state.own) lv.sentences.forEach((ss,j)=>{
+    const d=document.createElement("div");
+    d.className="dot"+(j===state.idx?" cur":"")+(isDone(state.lvl+"-"+j,ss)?" done":"");
+    d.title="Satz "+(j+1); d.onclick=()=>{state.idx=j;setupTokens();clearFb();draw();};
+    D.appendChild(d);
+  });
+  $("prev").style.visibility=$("next").style.visibility=state.own?"hidden":"visible";
+  $("counter").textContent=state.own?"":`Satz ${state.idx+1} von ${lv.sentences.length}`;
+  $("levelHint").textContent=state.own?"":lv.hint;
+
+  // pool & build
+  const P=$("pool"),B=$("build"); P.innerHTML="";B.innerHTML="";
+  state.pool.forEach(t=>{
+    const b=document.createElement("button"); b.className="tok"+(state.chunkMode?" chunkmode":""); b.textContent=t.w;
+    b.onclick=()=>{state.pool=state.pool.filter(x=>x!==t);state.built.push(t);draw();};
+    P.appendChild(b);
+  });
+  state.built.forEach((t,i)=>{
+    const b=document.createElement("button"); b.className="tok"+(state.chunkMode?" chunkmode":""); b.textContent=i===0?cap(t.w):t.w;
+    b.onclick=()=>{state.built=state.built.filter(x=>x!==t);state.pool.push(t);draw();};
+    B.appendChild(b);
+  });
+  if(state.built.length&&state.punct){const sp=document.createElement("span");sp.className="pm";sp.textContent=state.punct;B.appendChild(sp);}
+  B.classList.toggle("empty",state.built.length===0);
+  document.querySelectorAll("#punct button").forEach(b=>b.classList.toggle("sel",b.dataset.p===state.punct));
+
+  // goals & found
+  const pr=prog(); const G=$("goals"); G.innerHTML="";
+  parts.forEach((p,i)=>{
+    if(p.t==="P") return;
+    const g=document.createElement("span"); g.className="goal"+(pr.fronts.has(i)?" done":"");
+    g.textContent=(pr.fronts.has(i)?"✓ ":"☐ ")+cap(p.w)+" …";
+    G.appendChild(g);
+  });
+  const gq=document.createElement("span"); gq.className="goal"+(pr.q?" done":""); gq.textContent=(pr.q?"✓ ":"☐ ")+"Frage ?"; G.appendChild(gq);
+
+  const F=$("found"); F.innerHTML="";
+  pr.found.forEach((f,n)=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<span class="nr">${n+1}</span>`;
+    f.order.forEach((pi,k)=>{
+      const p=parts[pi]; const c=document.createElement("span"); c.className="chunk "+p.t+(f.marks&&f.marks.S&&pi===sIdx(parts)?" subjmark":"")+(f.marks&&f.marks.P&&pi===pIdx(parts)?" predmark":"");
+      c.innerHTML=`<span>${k===0?cap(p.w):p.w}</span><span class="nm">${NAMES[p.t]}</span>`;
+      li.appendChild(c);
+    });
+    const pm=document.createElement("span");pm.className="pm";pm.textContent=f.punct;li.appendChild(pm);
+    if(f.orig){const t=document.createElement("span");t.className="tag";t.textContent="(Ausgangssatz)";li.appendChild(t);}
+    F.appendChild(li);
+  });
+  const W=$("win");
+  if(isDone(key(),parts)){
+    W.innerHTML=`<div class="win">🎉 Super! Ziel erreicht! ${pr.found.length} Sätze gefunden.<br><span style="font-size:18px;font-weight:400;color:var(--ink)">Schau genau: Die Wörter auf einer Karte bleiben in <u>jedem</u> Satz zusammen. Das sind Satzglieder!</span><br>${state.own?"":'<button class="check" id="goNext">Nächster Satz ▶</button>'}</div>`;
+    const gn=$("goNext"); if(gn) gn.onclick=nextSentence;
+  } else W.innerHTML="";
+}
+
+function fb(msg,cls,html){const f=$("fb");if(html)f.innerHTML=msg;else f.textContent=msg;f.className="fb "+cls;if(typeof pandaOops==="function"&&!fb.silent){if(cls==="bad")pandaOops();else if(cls==="info"&&!state.pending)pandaHint();}if(cls==="bad"){$("build").classList.remove("shake");void $("build").offsetWidth;$("build").classList.add("shake");}}
+function clearFb(){$("fb").textContent="";$("fb").className="fb";state.fails=0;}
+
+function permutations(arr){
+  if(arr.length<=1) return [arr];
+  const out=[];
+  arr.forEach((x,i)=>{permutations(arr.slice(0,i).concat(arr.slice(i+1))).forEach(p=>out.push([x].concat(p)));});
+  return out;
+}
+
+function check(){
+  const parts=cur();
+  if(state.pending){fb("Beantworte zuerst die Frage im farbigen Feld!","info");return;}
+  if(state.pool.length){fb("Benutze alle Wortkarten! Es fehlen noch "+state.pool.length+".","info");return;}
+  if(!state.punct){fb("Welches Satzzeichen gehört ans Ende: Punkt oder Fragezeichen?","info");return;}
+  const str=state.built.map(t=>t.w).join(" ").toLowerCase();
+  const order=permutations(parts.map((_,i)=>i)).find(o=>o.map(i=>parts[i].w).join(" ").toLowerCase()===str);
+  if(!order){
+    fb("Hmm, das klingt nicht richtig. Probier es noch einmal!","bad");
+    return;
+  }
+  const v=order.indexOf(pIdx(parts)), si=sIdx(parts);
+  if(v>1){fb("Das Verb „"+parts[pIdx(parts)].w+"“ steht an der falschen Stelle. Im Aussagesatz steht es an 2. Stelle, im Fragesatz ganz vorne.","bad");return;}
+  if(v===0&&state.punct!=="?"){fb("Das Verb steht ganz vorne – dann ist es eine Frage. Welches Satzzeichen passt?","bad");return;}
+  if(v===1&&state.punct!=="."){fb("Das ist ein Aussagesatz (Verb an 2. Stelle). Welches Satzzeichen passt?","bad");return;}
+  const subjOk = v===0 ? order[1]===si : (order[0]===si||order[2]===si);
+  if(!subjOk){fb("Fast! Das klingt aber komisch. Tipp: Setze „"+parts[si].w+"“ direkt hinter das Verb.","info");return;}
+  // natürliche Reihenfolge hinter dem Verb: Subjekt, dann die übrigen Satzglieder wie im Ausgangssatz
+  const front = v===0 ? null : order[0];
+  const pi0=pIdx(parts);
+  const canonTail=[si,...parts.map((_,i)=>i).filter(i=>i!==si&&i!==pi0&&i!==front)].filter(i=>i!==front);
+  const tail=order.slice(v+1);
+  if(tail.join()!==canonTail.join()){fb("Fast! Hinter dem Verb klingt die Reihenfolge noch komisch. Tausche die Karten hinter „"+parts[pi0].w+"“.","info");return;}
+  const pr=prog();
+  const k=render(parts,order,state.punct);
+  if(pr.found.some(f=>render(parts,f.order,f.punct)===k)){fb("Diesen Satz hast du schon gefunden. Probier eine andere Reihenfolge!","info");return;}
+  const steps=[];
+  if($("optSubj").checked) steps.push("S");
+  if($("optPred").checked) steps.push("P");
+  if(steps.length){state.pending={order,punct:state.punct,k,steps,marks:{}};showFinder();return;}
+  commit(order,state.punct,k,{});
+}
+
+function commit(order,punct,k,marks){
+  const parts=cur(),pr=prog(),v=order.indexOf(pIdx(parts));
+  const wasDone=isDone(key(),parts);
+  pr.found.push({order,punct,marks});
+  if(v===0) pr.q=true; else pr.fronts.add(order[0]);
+  state.fails=0;
+  const praise=["Richtig! 👍","Super gemacht! ⭐","Klasse! 🎯","Prima, ein neuer Satz! ✨","Toll umgestellt! 🔁"];
+  let extra="";
+  if(marks.S) extra+="  –  Subjekt: „"+parts[sIdx(parts)].w+"“";
+  if(marks.P) extra+="  –  Prädikat: „"+parts[pIdx(parts)].w+"“";
+  const colored=order.map((i,n)=>`<span class="chunk ${parts[i].t}"><span>${n===0?cap(parts[i].w):parts[i].w}</span><span class="nm">${NAMES[parts[i].t]}</span></span>`).join(" ")+`<span class="pm">${punct}</span>`;
+  fb(praise[Math.floor(Math.random()*praise.length)]+"&nbsp; "+colored,"ok",true);
+  state.pending=null; $("subjq").style.display="none";
+  setupTokens(); draw();
+  pandaCorrect();
+  if(!wasDone&&isDone(key(),parts)){confetti();pandaGoal();}
+}
+
+function finderQuestion(step){
+  const parts=cur(),si=sIdx(parts),pi=pIdx(parts);
+  if(step==="S"){
+    const rest=parts.filter((_,i)=>i!==si&&i!==pi).map(p=>p.w).join(" ");
+    return "Wer oder was <b>"+parts[pi].w+"</b>"+(rest?" "+rest:"")+"?";
+  }
+  const plural=/^(wir|ihr)\b/i.test(parts[si].w);
+  const verb=/^wir\b/i.test(parts[si].w)?"tun":/^ihr\b/i.test(parts[si].w)?"tut":"tut";
+  return "Was "+verb+" <b>"+parts[si].w+"</b>?";
+}
+function showFinder(){
+  const parts=cur(),pd=state.pending,Q=$("subjq"),step=pd.steps[0];
+  const isS=step==="S", target=isS?sIdx(parts):pIdx(parts);
+  Q.className="subjq"+(isS?"":" pred");
+  Q.style.display="block";
+  Q.innerHTML=`<div class="label">${isS?"🔍 Subjektfinder: Finde das Subjekt.":"🔎 Prädikatfinder: Finde das Prädikat (Verb)."} Tippe die richtige Karte an.</div>
+    <div class="q">${finderQuestion(step)}</div><div class="cards"></div>`;
+  const C=Q.querySelector(".cards");
+  pd.order.forEach((pi,n)=>{
+    const b=document.createElement("button");b.className="tok";b.textContent=n===0?cap(parts[pi].w):parts[pi].w;
+    if(pd.marks.S&&pi===sIdx(parts)) b.style.background="var(--S)";
+    b.onclick=()=>{
+      if(pi===target){
+        pd.marks[step]=true; pd.steps.shift();
+        if(pd.steps.length){fb("Richtig! „"+parts[target].w+"“ ist das Subjekt. Und jetzt: Was tut …?","ok");showFinder(true);}
+        else commit(pd.order,pd.punct,pd.k,pd.marks);
+      } else {
+        b.classList.add("shake");b.style.opacity=".4";
+        let m;
+        if(isS) m = pi===pIdx(parts)?"Das ist das Verb (Prädikat). Frag noch einmal: Wer oder was …?":"Nein, „"+parts[pi].w+"“ passt nicht. Setze die Karte in die Frage ein: Klingt die Antwort richtig?";
+        else m = pi===sIdx(parts)?"Das ist das Subjekt. Gesucht ist, was es tut!":"Nein, „"+parts[pi].w+"“ sagt nicht, was jemand tut. Such das Verb!";
+        fb(m,"bad");
+      }
+    };
+    C.appendChild(b);
+  });
+  const sp=document.createElement("span");sp.className="pm";sp.textContent=pd.punct;C.appendChild(sp);
+  if(!arguments[0]) fb("Gut umgestellt! Und jetzt: "+(isS?"Wer oder was?":"Was tut …?"),"info");
+  $("pool").innerHTML="";
+}
+
+function nextSentence(){
+  const lv=LEVELS[state.lvl];
+  if(state.idx<lv.sentences.length-1) state.idx++;
+  else if(state.lvl<LEVELS.length-1){state.lvl++;state.idx=0;}
+  setupTokens();clearFb();draw();window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function confetti(){
+  const cols=["#ffd84d","#ff8f7a","#7fb8ff","#9fdc7a","#c9a3ff","#ffb867"];
+  for(let i=0;i<70;i++){
+    const c=document.createElement("div");c.className="confetti";
+    c.style.left=Math.random()*100+"vw";c.style.background=cols[i%cols.length];
+    c.style.animationDuration=(1.8+Math.random()*1.8)+"s";c.style.animationDelay=Math.random()*.6+"s";
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4500);
+  }
+}
+
+$("check").onclick=check;
+$("reset").onclick=()=>{setupTokens();draw();};
+$("prev").onclick=()=>{if(state.idx>0){state.idx--;setupTokens();clearFb();draw();}};
+$("next").onclick=()=>{if(state.idx<LEVELS[state.lvl].sentences.length-1){state.idx++;setupTokens();clearFb();draw();}};
+document.querySelectorAll("#punct button").forEach(b=>b.onclick=()=>{state.punct=state.punct===b.dataset.p?null:b.dataset.p;draw();});
+$("optColors").onchange=e=>document.body.classList.toggle("colors",e.target.checked);
+$("ownBtn").onclick=()=>{
+  const raw=$("ownInput").value.replace(/[.?!]\s*$/,"").split("|").map(x=>x.trim()).filter(Boolean);
+  if(raw.length<3){$("ownMsg").textContent="Bitte mindestens 3 Satzglieder mit | trennen.";return;}
+  const parts=raw.map((w,i)=>({w:i===0?w:w,t:i===0?"S":i===1?"P":"X"}));
+  // Artikel am Satzanfang klein schreiben, damit er an anderer Stelle richtig steht
+  if(/^(Der|Die|Das|Ein|Eine|Mein|Meine|Dein|Deine|Unser|Unsere|Wir)\s/.test(parts[0].w)) parts[0].w=parts[0].w.charAt(0).toLowerCase()+parts[0].w.slice(1);
+  delete state.progress.own;
+  state.own=parts;$("ownMsg").textContent="Übernommen!";setupTokens();clearFb();draw();window.scrollTo({top:0,behavior:"smooth"});
+};
+
+
+// ---------- Panda Balou ----------
+const panda={streak:0,best:0,timer:null};
+try{panda.best=parseInt(localStorage.getItem("pandiBest")||"0",10)||0;}catch(e){}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function pandaFace(mood){
+  const happy=mood==="happy"||mood==="party";
+  document.getElementById("pEyes").style.display=happy?"none":"";
+  document.getElementById("pEyesHappy").style.display=happy?"":"none";
+  const m=document.getElementById("pMouth");
+  m.setAttribute("d", mood==="sad" ? "M61 88 q9 -7 18 0" : mood==="think" ? "M62 86 l16 0" : happy ? "M57 82 q13 14 26 0" : "M60 84 q10 9 20 0");
+  const aL=document.getElementById("pArmL"),aR=document.getElementById("pArmR");
+  if(mood==="party"){aL.setAttribute("transform","rotate(150 28 100)");aR.setAttribute("transform","rotate(-150 112 100)");}
+  else {aL.setAttribute("transform","rotate(25 28 112)");aR.setAttribute("transform","rotate(-25 112 112)");}
+}
+function pandaAnim(cls){const b=document.getElementById("pBody");b.classList.remove("p-jump","p-dance","p-wobble");void b.offsetWidth;b.classList.add(cls);}
+function pandaSay(msg,mood,anim){
+  const bub=document.getElementById("pBubble");
+  bub.innerHTML=msg;bub.classList.remove("hide");
+  pandaFace(mood||"normal"); if(anim) pandaAnim(anim);
+  clearTimeout(panda.timer);
+  panda.timer=setTimeout(()=>{pandaFace("normal");},2600);
+}
+function pandaStreakUI(){
+  const s=document.getElementById("pStreak");
+  s.textContent="🔥 "+panda.streak; s.classList.toggle("zero",panda.streak===0);
+  document.getElementById("pBest").textContent="Rekord: "+panda.best;
+}
+function pandaCorrect(){
+  panda.streak++;
+  let rec=false;
+  if(panda.streak>panda.best){panda.best=panda.streak;rec=panda.best>1;try{localStorage.setItem("pandiBest",panda.best);}catch(e){}}
+  pandaStreakUI();
+  const s=panda.streak;
+  if(s===3) pandaSay("3 richtig hintereinander! 🔥 Du bist auf einer Serie!","happy","p-jump");
+  else if(s===5) pandaSay("Wow, eine <b>5er-Serie</b>! 🌟 Ich bin beeindruckt!","party","p-dance");
+  else if(s===10) pandaSay("<b>10 in Folge!</b> 🏆 Du bist ein echter Satzglied-Profi!","party","p-dance");
+  else if(s>10&&s%5===0) pandaSay("<b>"+s+"er-Serie!</b> 🚀 Unglaublich!","party","p-dance");
+  else if(rec&&s>3) pandaSay("Neuer Rekord: <b>"+s+"</b>! 🎖️","happy","p-jump");
+  else pandaSay(pick(["Super! 🐼","Klasse gemacht!","Ja, genau so!","Toll umgestellt!","Weiter so! 💪","Bambus-stark! 🎋"]),"happy","p-jump");
+}
+function pandaOops(){
+  const had=panda.streak;
+  panda.streak=0; pandaStreakUI();
+  pandaSay(had>=3 ? "Oh, die Serie ist vorbei – aber "+had+" war richtig stark! Neue Serie? 💪"
+                  : pick(["Kein Problem, probier's nochmal! 🐼","Fehler sind zum Lernen da!","Du schaffst das!","Fast! Schau noch mal genau hin.","Ich glaub an dich! 🎋"]),"sad","p-wobble");
+}
+function pandaHint(){pandaSay(pick(["Hmm … denk nochmal nach 🤔","Schau genau hin!","Du bist ganz nah dran!"]),"think","p-wobble");}
+function pandaGoal(){setTimeout(()=>pandaSay("Geschafft! 🎉 Alle Ziele erreicht – ich bin sooo stolz auf dich!","party","p-dance"),400);}
+document.getElementById("pBody").onclick=()=>pandaSay(pick(["Tipp: Das Verb steht im Aussagesatz an <b>2. Stelle</b>.","Tipp: Bei einer Frage steht das Verb <b>ganz vorne</b>.","Tipp: Jede Karte darf einmal nach vorne!","Kitzel mich nicht! 😄","Ich liebe Bambus – und Satzglieder! 🎋"]),"happy","p-jump");
+pandaStreakUI();
+
+setupTokens();draw();
+</script>
+</body>
+</html>
