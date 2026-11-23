@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Formen-Flug – Warm-up Geometrie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1e7;--paper:#fffdf8;--ink:#1f2a37;--muted:#6b7280;--line:#e7dcc8;--accent:#2f6fde;--ok:#16a34a;--bad:#dc2626;--star:#f5b700}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'Fredoka',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-user-select:none;user-select:none}
+.wrap{max-width:1100px;margin:0 auto;padding:14px 18px 28px}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+h1{margin:0;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px}
+.pill{background:var(--paper);border:2px solid var(--line);border-radius:999px;padding:5px 14px;font-size:16px}
+.pill b{font-weight:600}
+.spacer{flex:1}
+.stage{position:relative;border-radius:22px;overflow:hidden;border:2px solid #cfe0f5;
+  background:linear-gradient(#cfe7ff,#eef7ff 70%,#f7fbff);aspect-ratio:2/1}
+.stage svg{position:absolute;inset:0;width:100%;height:100%}
+.cloud{fill:#fff;opacity:.85}
+.stopbtn{position:absolute;right:18px;bottom:18px;font:inherit;font-size:28px;font-weight:700;color:#fff;background:var(--bad);
+  border:0;border-radius:20px;padding:14px 34px;cursor:pointer;box-shadow:0 6px 0 #a61b1b}
+.stopbtn:active{transform:translateY(4px);box-shadow:0 2px 0 #a61b1b}
+.stopbtn[hidden]{display:none}
+.hint{position:absolute;left:18px;bottom:20px;font-size:16px;color:#47658a;background:rgba(255,255,255,.75);padding:6px 12px;border-radius:12px}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:20px;padding:18px 20px;margin-top:14px}
+.card h2{margin:0 0 12px;font-size:24px;font-weight:600}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.opt{font:inherit;font-size:20px;text-align:left;border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px 16px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:12px}
+.opt:hover:not(:disabled){border-color:#9fbcf0;background:#f3f7ff}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--ok);background:#e9f8ee}
+.opt.wrong{border-color:var(--bad);background:#fdecec}
+.opt .ic{width:44px;height:34px;flex:none}
+.q .opt{font-size:18px}
+.fb{margin-top:12px;font-size:18px;line-height:1.4;border-radius:14px;padding:12px 14px;display:none}
+.fb.show{display:block}
+.fb.good{background:#e9f8ee;color:#14532d}
+.fb.bad{background:#fdecec;color:#7f1d1d}
+.fb.info{background:#fff7d6;color:#713f12}
+.tag{display:inline-block;background:#fff;border:1.5px solid #f2dc8c;border-radius:999px;padding:1px 10px;font-size:14px;margin-left:6px;color:#8a6a00}
+.row{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.btn{font:inherit;font-size:19px;font-weight:600;border:0;background:var(--accent);color:#fff;border-radius:14px;padding:10px 24px;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--line);font-weight:500}
+.speed{display:flex;gap:4px;background:var(--paper);border:2px solid var(--line);border-radius:999px;padding:3px}
+.speed button{font:inherit;font-size:14.5px;border:0;background:none;border-radius:999px;padding:4px 12px;cursor:pointer;color:var(--ink)}
+.speed button.on{background:var(--accent);color:#fff}
+.overlay{position:fixed;inset:0;background:rgba(246,241,231,.97);z-index:20;display:none;overflow:auto;padding:20px}
+.overlay.show{display:block}
+.ocard{max-width:760px;margin:30px auto;background:var(--paper);border:2px solid var(--line);border-radius:22px;padding:26px 30px;text-align:center}
+.ocard h2{font-size:34px;margin:0 0 6px}
+.ocard p{font-size:18px;color:#4b5563;line-height:1.45;margin:6px 0}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0;text-align:left}
+.steps div{background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px;font-size:16px;line-height:1.35}
+.steps b{display:block;font-size:18px;margin-bottom:2px}
+.gallery{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0 4px}
+.gallery svg{width:54px;height:44px}
+.big{font-size:56px;margin:4px 0}
+.stars{font-size:44px;letter-spacing:6px;color:#e5dccb}
+.stars .y{color:var(--star)}
+.go{font:inherit;font-size:22px;font-weight:600;border:0;background:var(--accent);color:#fff;border-radius:16px;padding:12px 34px;cursor:pointer;margin-top:14px}
+.reslist{text-align:left;margin:14px auto 0;max-width:460px;font-size:16px;line-height:1.6}
+@media (max-width:700px){.opts{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.stopbtn{font-size:22px;padding:10px 22px}}
+</style>
+</head>
+<body>
+<div class="overlay show" id="intro"><div class="ocard">
+  <div class="big">🚀</div>
+  <h2>Formen-Flug</h2>
+  <p>Gleich fliegen Flächenformen durch den Himmel. Wie gut erkennst du sie?</p>
+  <div class="gallery" id="gallery"></div>
+  <div class="steps">
+    <div><b>1. Beobachten</b>Eine Form fliegt durchs Bild – manchmal gedreht!</div>
+    <div><b>2. Stopp!</b>Drücke auf <b style="display:inline;color:#dc2626">STOPP</b> (oder die Leertaste), wann du willst.</div>
+    <div><b>3. Erkennen &amp; erklären</b>Wähle den Namen der Form. Dann kommt eine Verständnisfrage.</div>
+  </div>
+  <p>10 Formen · für jede richtige Antwort gibt es einen Punkt.</p>
+  <button class="go" id="bStart">Los geht’s! ➜</button>
+</div></div>
+
+<div class="overlay" id="end"><div class="ocard">
+  <div class="big">🏁</div>
+  <h2>Geschafft!</h2>
+  <div class="stars" id="endstars"></div>
+  <p id="endtext"></p>
+  <div class="reslist" id="reslist"></div>
+  <button class="go" id="bAgain">Noch eine Runde ↻</button>
+</div></div>
+
+<div class="wrap">
+  <header>
+    <h1>🚀 Formen-Flug</h1>
+    <span class="pill">Form <b id="nr">1</b> von 10</span>
+    <span class="pill">⭐ Punkte: <b id="pts">0</b></span>
+    <span class="spacer"></span>
+    <div class="speed" id="speed">
+      <button data-v="130">langsam</button><button data-v="210" class="on">mittel</button><button data-v="320">schnell</button>
+    </div>
+  </header>
+  <div class="stage" id="stage">
+    <svg viewBox="0 0 1000 500" id="sky">
+      <g id="clouds"></g>
+      <g id="shapeG"></g>
+    </svg>
+    <div class="hint" id="hint">Schau genau hin …</div>
+    <button class="stopbtn" id="bStop">STOPP!</button>
+  </div>
+  <div class="card" id="card" hidden></div>
+</div>
+
+<script>
+(function(){
+/* ---------------- Formen ---------------- */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function center(p){let x=0,y=0;p.forEach(q=>{x+=q[0];y+=q[1]});x/=p.length;y/=p.length;return p.map(q=>[q[0]-x,q[1]-y])}
+function regular(n,r){const o=[];for(let i=0;i<n;i++){const a=-Math.PI/2+i*2*Math.PI/n;o.push([r*Math.cos(a),r*Math.sin(a)])}return o}
+
+const SHAPES={
+ quadrat:{name:'Quadrat',art:'ein',group:'viereck',tangram:true,color:'#2fb24a',
+   make:()=>{const s=rnd(115,150);return center([[0,0],[s,0],[s,s],[0,s]])}},
+ rechteck:{name:'Rechteck',art:'ein',group:'viereck',color:'#2f6fde',
+   make:()=>{const w=rnd(170,210),h=w/rnd(1.6,2.3);return center([[0,0],[w,0],[w,h],[0,h]])}},
+ dreieck:{name:'Dreieck',art:'ein',group:'eck',tangram:true,color:'#e3342f',
+   make:()=>{const t=pick(['gleich','recht','tangram','stumpf','spitz']);
+     if(t==='gleich')return center(regular(3,95));
+     if(t==='recht')return center([[0,0],[rnd(150,190),0],[0,-rnd(100,130)]]);
+     if(t==='tangram')return center([[0,0],[160,0],[0,-160]]);
+     if(t==='stumpf')return center([[0,0],[200,0],[rnd(-40,-10),-rnd(70,90)]]);
+     return center([[0,0],[170,0],[rnd(60,110),-rnd(130,160)]]);}},
+ kreis:{name:'Kreis',art:'ein',group:'rund',color:'#ff8a1f',
+   make:()=>regular(72,rnd(70,90))},
+ parallelogramm:{name:'Parallelogramm',art:'ein',group:'viereck',tangram:true,color:'#ffdd00',
+   make:()=>{const b=rnd(160,190),h=rnd(80,95),o=rnd(55,75);return center([[o,0],[o+b,0],[b,h],[0,h]])}},
+ raute:{name:'Raute',art:'eine',group:'viereck',color:'#a855f7',
+   make:()=>{const s=rnd(120,140),a=rnd(55,68)*Math.PI/180,c=s*Math.cos(a),d=s*Math.sin(a);return center([[0,0],[s,0],[s+c,d],[c,d]])}},
+ trapez:{name:'Trapez',art:'ein',group:'viereck',color:'#14b8c4',
+   make:()=>{const B=rnd(200,230),T=rnd(90,120),h=rnd(85,105),o=Math.random()<.5?(B-T)/2:rnd(10,40);return center([[o,0],[o+T,0],[B,h],[0,h]])}},
+ fuenfeck:{name:'Fünfeck',art:'ein',group:'eck',color:'#ec4899',make:()=>regular(5,rnd(80,95))},
+ sechseck:{name:'Sechseck',art:'ein',group:'eck',color:'#84cc16',make:()=>regular(6,rnd(80,95))},
+ achteck:{name:'Achteck',art:'ein',group:'eck',color:'#64748b',make:()=>regular(8,rnd(80,95))}
+};
+const KEYS=Object.keys(SHAPES);
+
+/* Oberbegriffe: "auch richtig, aber es gibt einen genaueren Namen" */
+const ALSO={
+ quadrat:{rechteck:'Ein Quadrat ist auch ein besonderes Rechteck: Es hat 4 rechte Winkel. Aber es hat sogar 4 gleich lange Seiten. Wie heißt es ganz genau?',
+          raute:'Ein Quadrat ist auch eine besondere Raute: Es hat 4 gleich lange Seiten. Aber es hat auch 4 rechte Winkel. Wie heißt es ganz genau?',
+          parallelogramm:'Ein Quadrat ist auch ein besonderes Parallelogramm. Aber es gibt einen viel genaueren Namen. Welchen?',
+          trapez:'Ein Quadrat hat parallele Seiten – also ist es auch ein besonderes Trapez. Aber es gibt einen viel genaueren Namen!'},
+ rechteck:{parallelogramm:'Ein Rechteck ist auch ein besonderes Parallelogramm. Aber es hat 4 rechte Winkel – wie heißt es genau?',
+           trapez:'Ein Rechteck hat parallele Seiten – also ist es auch ein besonderes Trapez. Aber es gibt einen genaueren Namen!'},
+ raute:{parallelogramm:'Eine Raute ist auch ein besonderes Parallelogramm. Aber alle 4 Seiten sind gleich lang – wie heißt sie genau?',
+        trapez:'Eine Raute hat parallele Seiten – also ist sie auch ein besonderes Trapez. Aber es gibt einen genaueren Namen!'},
+ parallelogramm:{trapez:'Ein Parallelogramm hat parallele Seiten – also ist es auch ein besonderes Trapez. Aber hier sind sogar beide Paare parallel. Wie heißt es genau?'}
+};
+
+const HINTS={
+ quadrat:'Zähle die Ecken und vergleiche die Seiten. Sind alle Seiten gleich lang? Sind die Ecken rechte Winkel?',
+ rechteck:'Die Ecken sind alle rechte Winkel – aber sind alle Seiten gleich lang?',
+ dreieck:'Zähle die Ecken!',
+ kreis:'Hat die Form überhaupt Ecken?',
+ parallelogramm:'Die gegenüberliegenden Seiten sind parallel. Die Ecken sind schief, und nicht alle Seiten sind gleich lang.',
+ raute:'Alle 4 Seiten sind gleich lang – aber die Ecken sind schief.',
+ trapez:'Nur zwei Seiten sind parallel zueinander, die anderen beiden nicht.',
+ fuenfeck:'Zähle die Ecken ganz genau!',
+ sechseck:'Zähle die Ecken ganz genau!',
+ achteck:'Zähle die Ecken ganz genau!'
+};
+
+/* ---------------- Verständnisfragen ---------------- */
+const Q={
+ quadrat:[
+  {q:'Was stimmt bei jedem Quadrat?',o:['4 gleich lange Seiten und 4 rechte Winkel','4 gleich lange Seiten, aber schiefe Ecken','2 lange und 2 kurze Seiten','3 Ecken und 3 Seiten'],why:'Ein Quadrat hat 4 gleich lange Seiten UND 4 rechte Winkel. Beides muss stimmen!'},
+  {q:'Was unterscheidet ein Quadrat von einem Rechteck?',o:['Beim Quadrat sind alle 4 Seiten gleich lang','Das Quadrat hat keine rechten Winkel','Das Quadrat hat 5 Ecken','Es gibt keinen Unterschied'],why:'Beide haben 4 rechte Winkel. Aber nur beim Quadrat sind alle Seiten gleich lang.'},
+  {q:'Wie viele Symmetrieachsen hat ein Quadrat?',o:['4','2','1','keine'],why:'Ein Quadrat kannst du auf 4 Arten falten: senkrecht, waagerecht und an beiden Diagonalen.'},
+  {q:'Ein Quadrat wird gedreht und steht auf einer Spitze. Was ist es jetzt?',o:['Immer noch ein Quadrat','Ein Achteck','Ein Dreieck','Ein Kreis'],why:'Drehen ändert nichts an den Seiten und Winkeln. Ein Quadrat bleibt ein Quadrat!'}],
+ rechteck:[
+  {q:'Was stimmt bei jedem Rechteck?',o:['4 rechte Winkel, gegenüberliegende Seiten sind gleich lang','Alle Seiten sind verschieden lang','Es hat keine rechten Winkel','3 rechte Winkel und eine schiefe Ecke'],why:'Ein Rechteck hat 4 rechte Winkel. Die gegenüberliegenden Seiten sind gleich lang und parallel.'},
+  {q:'Wie viele rechte Winkel hat ein Rechteck?',o:['4','2','1','0'],why:'Alle 4 Ecken eines Rechtecks sind rechte Winkel.'},
+  {q:'Wie viele Symmetrieachsen hat ein Rechteck (das kein Quadrat ist)?',o:['2','4','1','keine'],why:'Du kannst es senkrecht und waagerecht in der Mitte falten. An der Diagonale passt es nicht aufeinander!'},
+  {q:'Welche Seiten sind beim Rechteck gleich lang?',o:['Die gegenüberliegenden Seiten','Die benachbarten Seiten','Keine Seiten','Nur die obere und die linke Seite'],why:'Gegenüberliegende Seiten sind gleich lang: oben = unten, links = rechts.'}],
+ dreieck:[
+  {q:'Was haben alle Dreiecke gemeinsam?',o:['3 Ecken und 3 Seiten','3 gleich lange Seiten','Einen rechten Winkel','4 Ecken'],why:'Jedes Dreieck hat 3 Ecken und 3 Seiten. Die Seiten können verschieden lang sein.'},
+  {q:'Kann ein Dreieck zwei rechte Winkel haben?',o:['Nein, das geht nicht','Ja, immer','Ja, aber nur große Dreiecke','Nur wenn es gedreht ist'],why:'Probiere es aus: Bei zwei rechten Winkeln laufen die Seiten parallel und treffen sich nie. Höchstens ein rechter Winkel passt in ein Dreieck.'},
+  {q:'Die Dreiecke im Tangram haben etwas Besonderes. Was?',o:['Einen rechten Winkel und zwei gleich lange Seiten','Drei gleich lange Seiten','Keine geraden Seiten','Vier Ecken'],why:'Alle 5 Tangram-Dreiecke haben einen rechten Winkel, und die beiden Seiten daran sind gleich lang.'},
+  {q:'Wie heißt ein Dreieck, bei dem alle 3 Seiten gleich lang sind?',o:['Gleichseitiges Dreieck','Rechtwinkliges Dreieck','Quadrat','Spitzes Viereck'],why:'Sind alle 3 Seiten gleich lang, heißt es gleichseitiges Dreieck.'}],
+ kreis:[
+  {q:'Was ist das Besondere am Kreis?',o:['Er hat keine Ecken','Er hat 4 Ecken','Er hat 100 kleine Ecken','Er hat gerade Seiten'],why:'Ein Kreis hat keine Ecken und keine geraden Seiten – nur eine runde Linie.'},
+  {q:'Wie weit sind alle Punkte auf der Kreislinie vom Mittelpunkt entfernt?',o:['Alle gleich weit','Oben weiter als unten','Ganz unterschiedlich','Rechts weiter als links'],why:'Jeder Punkt auf der Kreislinie ist genau gleich weit vom Mittelpunkt entfernt. Deshalb kann man einen Kreis mit dem Zirkel zeichnen.'},
+  {q:'Womit zeichnet man einen Kreis am besten?',o:['Mit dem Zirkel','Mit dem Geodreieck','Mit der Schere','Nur freihändig'],why:'Der Zirkel hält immer den gleichen Abstand zum Mittelpunkt – so wird der Kreis schön rund.'},
+  {q:'Wie viele Symmetrieachsen hat ein Kreis?',o:['Unendlich viele','4','2','keine'],why:'Jede Linie durch den Mittelpunkt ist eine Symmetrieachse – es gibt unendlich viele!'}],
+ parallelogramm:[
+  {q:'Was stimmt beim Parallelogramm?',o:['Gegenüberliegende Seiten sind parallel und gleich lang','Es hat nur 3 Seiten','Alle Ecken sind rechte Winkel','Keine Seiten sind parallel'],why:'Beim Parallelogramm sind je zwei gegenüberliegende Seiten parallel und gleich lang.'},
+  {q:'Das gelbe Tangram-Teil ist ein Parallelogramm. Was musst du manchmal damit machen, damit es passt?',o:['Es umdrehen (spiegeln)','Es zerschneiden','Es größer machen','Nichts – es passt immer'],why:'Das Parallelogramm ist „schief“. Manchmal musst du es umdrehen, damit es in die andere Richtung zeigt.'},
+  {q:'Was ist der Unterschied zwischen einem Parallelogramm und einem Rechteck?',o:['Das Parallelogramm hat schiefe Ecken','Das Parallelogramm hat 5 Seiten','Das Rechteck hat keine parallelen Seiten','Es gibt keinen'],why:'Beide haben parallele gegenüberliegende Seiten. Das Rechteck hat aber 4 rechte Winkel, das Parallelogramm schiefe Ecken.'},
+  {q:'Was bedeutet „parallel“?',o:['Zwei Linien haben überall den gleichen Abstand und treffen sich nie','Zwei Linien kreuzen sich','Eine Linie ist länger als die andere','Zwei Linien bilden einen rechten Winkel'],why:'Parallele Linien laufen nebeneinander wie Schienen – sie treffen sich nie.'}],
+ raute:[
+  {q:'Was stimmt bei jeder Raute?',o:['4 gleich lange Seiten','4 rechte Winkel','2 lange und 2 kurze Seiten','3 Ecken'],why:'Bei der Raute sind alle 4 Seiten gleich lang. Die Ecken sind meistens schief.'},
+  {q:'Was unterscheidet eine Raute von einem Quadrat?',o:['Die Raute hat schiefe Ecken (keine rechten Winkel)','Die Raute hat verschieden lange Seiten','Die Raute hat 5 Seiten','Es gibt keinen Unterschied'],why:'Beide haben 4 gleich lange Seiten. Aber nur das Quadrat hat rechte Winkel.'},
+  {q:'Wie viele Symmetrieachsen hat eine Raute (die kein Quadrat ist)?',o:['2','4','1','keine'],why:'Eine Raute kannst du an ihren beiden Diagonalen falten.'},
+  {q:'Wo kennst du Rauten aus dem Alltag?',o:['Bei einem Drachen oder Spielkarten (Karo)','Bei einem Fußball','Bei einer Pizza','Bei einem Ei'],why:'Das Karo auf Spielkarten ist eine Raute. Auch Drachen sehen oft so ähnlich aus.'}],
+ trapez:[
+  {q:'Was ist typisch für ein Trapez?',o:['Zwei gegenüberliegende Seiten sind parallel','Alle Seiten sind gleich lang','Es hat 3 Ecken','Es ist rund'],why:'Ein Trapez ist ein Viereck mit (mindestens) zwei parallelen Seiten.'},
+  {q:'Wie viele Ecken hat ein Trapez?',o:['4','3','5','6'],why:'Ein Trapez ist ein Viereck – also 4 Ecken und 4 Seiten.'},
+  {q:'Woran erkennst du ein Trapez am besten?',o:['Oben und unten parallel, aber verschieden lang','Alle Ecken sind rechte Winkel','Alle Seiten sind gleich lang','Es hat keine Ecken'],why:'Oft sind die beiden parallelen Seiten unterschiedlich lang – das Trapez sieht dann aus wie ein Dach oder ein Eimer.'}],
+ fuenfeck:[
+  {q:'Wie viele Ecken und Seiten hat ein Fünfeck?',o:['5 Ecken und 5 Seiten','5 Ecken und 4 Seiten','4 Ecken und 5 Seiten','6 Ecken und 6 Seiten'],why:'Bei jedem Vieleck gilt: Es hat gleich viele Ecken wie Seiten. Fünfeck = 5 Ecken, 5 Seiten.'},
+  {q:'Wo findest du Fünfecke?',o:['Auf einem Fußball (die schwarzen Flächen)','Auf einem Würfel','Bei einer Tür','Beim Stoppschild'],why:'Die schwarzen Flächen auf einem klassischen Fußball sind Fünfecke.'},
+  {q:'Warum heißt es „Fünfeck“?',o:['Weil es 5 Ecken hat','Weil es 5 cm groß ist','Weil es 5 rechte Winkel hat','Weil man 5 davon braucht'],why:'Der Name verrät die Anzahl der Ecken.'}],
+ sechseck:[
+  {q:'Wie viele Ecken hat ein Sechseck?',o:['6','5','8','4'],why:'Sechseck = 6 Ecken und 6 Seiten.'},
+  {q:'Welche Tiere bauen Waben in Sechseck-Form?',o:['Bienen','Ameisen','Spinnen','Schnecken'],why:'Bienenwaben sind Sechsecke – sie passen ohne Lücken aneinander.'},
+  {q:'Hat ein Sechseck gleich viele Ecken wie Seiten?',o:['Ja, 6 Ecken und 6 Seiten','Nein, 6 Ecken und 5 Seiten','Nein, 6 Ecken und 12 Seiten','Nein, es hat keine Seiten'],why:'Jedes Vieleck hat gleich viele Ecken wie Seiten.'}],
+ achteck:[
+  {q:'Welches Verkehrsschild hat die Form eines Achtecks?',o:['Das Stoppschild','Das Vorfahrtsschild','Ein Tempo-30-Schild','Ein Parkplatzschild'],why:'Das rote Stoppschild ist ein Achteck – so erkennt man es sogar von hinten.'},
+  {q:'Wie viele Seiten hat ein Achteck?',o:['8','6','10','4'],why:'Achteck = 8 Ecken und 8 Seiten.'},
+  {q:'Ein Achteck hat sehr viele Ecken. Warum ist es trotzdem kein Kreis?',o:['Es hat gerade Seiten und Ecken','Es ist zu klein','Es hat keine Farbe','Es ist doch ein Kreis'],why:'Ein Kreis hat gar keine Ecken. Das Achteck hat 8 Ecken und gerade Seiten – auch wenn es fast rund aussieht.'}]
+};
+
+/* ---------------- Zustand ---------------- */
+const TOTAL=10;
+let order=[],idx=0,pts=0,speed=210,anim=null,cur=null,results=[],firstTry=true;
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function ptsStr(p){return p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ')}
+function icon(key,w=44,h=34){
+  const s=el('svg',{viewBox:'-110 -110 220 220',class:'ic',width:w,height:h});
+  const p=SHAPES[key].make();
+  el('polygon',{points:ptsStr(p),fill:SHAPES[key].color,stroke:'#111','stroke-width':8,'stroke-linejoin':'round'},s);return s;
+}
+
+/* Wolken */
+(function(){const g=$('clouds');[[150,90,1],[620,70,1.3],[860,170,.8],[340,200,.7],[80,330,.9],[720,380,1.1]].forEach(([x,y,k])=>{
+  const c=el('g',{transform:`translate(${x} ${y}) scale(${k})`,class:'cloud'},g);
+  [[0,0,32],[30,-12,38],[64,0,30],[32,10,30]].forEach(([a,b,r])=>el('circle',{cx:a,cy:b,r},c));})})();
+
+/* Intro-Galerie */
+KEYS.forEach(k=>{const s=icon(k,54,44);const t=el('title',{},s);t.textContent=SHAPES[k].name;$('gallery').appendChild(s)});
+
+$('speed').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  speed=+b.dataset.v;[...$('speed').children].forEach(x=>x.classList.toggle('on',x===b))});
+
+/* ---------------- Ablauf ---------------- */
+function newRound(){
+  order=shuffle(KEYS).slice(0,TOTAL);idx=0;pts=0;results=[];
+  $('pts').textContent=0;nextShape();
+}
+function nextShape(){
+  if(idx>=TOTAL){showEnd();return}
+  $('nr').textContent=idx+1;
+  $('card').hidden=true;$('card').innerHTML='';
+  const key=order[idx];firstTry=true;
+  launch(key);
+}
+function launch(key){
+  const g=$('shapeG');g.innerHTML='';
+  const poly=SHAPES[key].make();
+  const node=el('polygon',{points:ptsStr(poly),fill:SHAPES[key].color,stroke:'#111','stroke-width':4,'stroke-linejoin':'round'},g);
+  const dir=Math.random()<.5?1:-1;
+  cur={key,node,x:dir>0?-160:1160,y:rnd(140,360),dir,rot:rnd(0,360),vr:pick([0,rnd(-50,-15),rnd(15,50),rnd(-90,90)]),t:0,wave:rnd(15,45),ph:rnd(0,6.28)};
+  $('bStop').hidden=false;$('hint').textContent='Schau genau hin … dann STOPP!';
+  let last=performance.now();
+  cancelAnimationFrame(anim);
+  (function step(now){
+    const dt=Math.min(0.05,(now-last)/1000);last=now;cur.t+=dt;
+    cur.x+=cur.dir*speed*dt;cur.rot+=cur.vr*dt;
+    const y=cur.y+Math.sin(cur.t*1.6+cur.ph)*cur.wave;
+    node.setAttribute('transform',`translate(${cur.x.toFixed(1)} ${y.toFixed(1)}) rotate(${cur.rot.toFixed(1)})`);
+    if((cur.dir>0&&cur.x>1170)||(cur.dir<0&&cur.x<-170)){launch(cur.key);return} // nochmal fliegen
+    anim=requestAnimationFrame(step);
+  })(last);
+}
+function stop(){
+  if($('bStop').hidden||!cur)return;
+  cancelAnimationFrame(anim);$('bStop').hidden=true;
+  $('hint').textContent='Gestoppt! Welche Form ist das?';
+  askShape();
+}
+$('bStop').onclick=stop;
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&!$('intro').classList.contains('show')){e.preventDefault();stop()}});
+
+function distractors(key){
+  const g=SHAPES[key].group;
+  const same=shuffle(KEYS.filter(k=>k!==key&&SHAPES[k].group===g));
+  const other=shuffle(KEYS.filter(k=>k!==key&&SHAPES[k].group!==g));
+  if(key==='kreis')return shuffle(['achteck','sechseck','fuenfeck']).slice(0,2).concat([pick(['quadrat','raute','dreieck'])]);
+  return same.slice(0,2).concat(other).slice(0,3);
+}
+function askShape(){
+  const key=cur.key,card=$('card');card.hidden=false;
+  card.innerHTML='<h2>Welche Flächenform ist das?</h2><div class="opts" id="o1"></div><div class="fb" id="fb1"></div><div class="row" id="r1"></div>';
+  const opts=shuffle([key].concat(distractors(key)));
+  opts.forEach(k=>{const b=document.createElement('button');b.className='opt';b.appendChild(icon(k));
+    b.appendChild(document.createTextNode(SHAPES[k].name));b.onclick=()=>chooseShape(k,b);$('o1').appendChild(b)});
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function chooseShape(k,b){
+  const key=cur.key,fb=$('fb1');
+  if(k===key){
+    if(firstTry)pts++;$('pts').textContent=pts;
+    [...$('o1').children].forEach(x=>x.disabled=true);b.classList.add('right');
+    fb.className='fb show good';
+    fb.innerHTML=`✅ Richtig! Das ist ${SHAPES[key].art} <b>${SHAPES[key].name}</b>.`+(SHAPES[key].tangram?'<span class="tag">🧩 kommt im Tangram vor</span>':'');
+    const r=$('r1');r.innerHTML='';const nb=document.createElement('button');nb.className='btn';nb.textContent='Zur Verständnisfrage ➜';nb.onclick=()=>askKnow(key);r.appendChild(nb);
+    results.push({key,shape:firstTry});
+  }else if(ALSO[key]&&ALSO[key][k]){
+    b.disabled=true;b.classList.add('wrong');b.style.borderColor='#f2dc8c';b.style.background='#fff7d6';
+    fb.className='fb show info';fb.innerHTML='🤔 Das stimmt sogar auch! '+ALSO[key][k];
+  }else{
+    firstTry=false;b.disabled=true;b.classList.add('wrong');
+    fb.className='fb show bad';fb.innerHTML='❌ Leider nicht. Tipp: '+HINTS[key]+' Versuche es noch einmal!';
+  }
+}
+function askKnow(key){
+  const item=pick(Q[key]),card=$('card');
+  const correct=item.o[0],opts=shuffle(item.o);
+  card.innerHTML=`<h2>🧠 Verständnisfrage: ${item.q}</h2><div class="opts q" id="o2"></div><div class="fb" id="fb2"></div><div class="row" id="r2"></div>`;
+  opts.forEach(t=>{const b=document.createElement('button');b.className='opt';b.textContent=t;
+    b.onclick=()=>{
+      const ok=t===correct;[...$('o2').children].forEach(x=>{x.disabled=true;if(x.textContent===correct)x.classList.add('right')});
+      if(!ok)b.classList.add('wrong');if(ok){pts++;$('pts').textContent=pts}
+      results[results.length-1].know=ok;
+      const fb=$('fb2');fb.className='fb show '+(ok?'good':'bad');
+      fb.innerHTML=(ok?'✅ Genau! ':'❌ Nicht ganz. ')+item.why;
+      const r=$('r2');const nb=document.createElement('button');nb.className='btn';
+      nb.textContent=idx+1<TOTAL?'Nächste Form 🚀':'Zum Ergebnis 🏁';nb.onclick=()=>{idx++;nextShape()};r.appendChild(nb);
+    };$('o2').appendChild(b)});
+}
+function showEnd(){
+  $('card').hidden=true;$('shapeG').innerHTML='';
+  const max=TOTAL*2,st=pts>=max*0.85?3:pts>=max*0.6?2:pts>=max*0.3?1:0;
+  $('endstars').innerHTML=[0,1,2].map(i=>`<span class="${i<st?'y':''}">★</span>`).join('');
+  $('endtext').innerHTML=`Du hast <b>${pts} von ${max}</b> Punkten.`+(st===3?' Du bist ein echter Formen-Profi! 🏆':st===2?' Sehr gut gemacht!':' Übung macht den Meister – probier es gleich nochmal!');
+  $('reslist').innerHTML=results.map(r=>`${r.shape?'✅':'🔁'} ${SHAPES[r.key].name} erkannt · Verständnisfrage ${r.know?'✅':'❌'}`).join('<br>');
+  $('end').classList.add('show');
+}
+$('bStart').onclick=()=>{$('intro').classList.remove('show');newRound()};
+$('bAgain').onclick=()=>{$('end').classList.remove('show');newRound()};
+})();
+</script>
+</body>
+</html>
