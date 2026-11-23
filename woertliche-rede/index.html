@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wörtliche Rede – Satzzeichen schieben</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blau:#3f6fc6; --gruen:#14a64a; --gelb:#ffe9a8; --gelbrand:#f2b705;
+    --ok:#1f9d55; --falsch:#d93b3b; --karte:#ffffff; --grund:#f4f6fb; --text:#1d1d1f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--grund);color:var(--text);
+    font-family:"Andika","Comic Sans MS","Trebuchet MS",sans-serif;}
+  .wrap{max-width:1050px;margin:0 auto;padding:18px 16px 60px}
+  header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-bottom:14px}
+  h1{margin:0;font-size:clamp(28px,4vw,40px);background:#ddd;padding:6px 18px;border-radius:14px}
+  .auftrag{font-size:clamp(17px,2vw,21px);background:#fff;border:2px solid #cfd6e4;border-radius:14px;padding:10px 16px;margin:0 0 14px;line-height:1.45}
+  .figuren{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin:6px 0 18px}
+  .figur{display:flex;align-items:center;gap:8px}
+  .avatar{font-size:46px;line-height:1}
+  .figur .name{font-weight:700;font-size:15px;text-align:center}
+  .blase{position:relative;background:#dce9f7;border:2px solid #2d4e7a;color:#2d4e7a;border-radius:50%;padding:14px 22px;font-size:20px;text-align:center;min-width:150px}
+  .blase:before{content:"";position:absolute;left:-12px;top:50%;border:9px solid transparent;border-right-color:#2d4e7a;transform:translateY(-50%)}
+  .leiste{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+  .schalter{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #cfd6e4;border-radius:999px;padding:6px 14px;font-size:17px;cursor:pointer;user-select:none}
+  .schalter input{width:20px;height:20px;accent-color:var(--blau)}
+  .legende{display:flex;gap:14px;font-size:17px;flex-wrap:wrap}
+  .legende span{padding-bottom:2px}
+  .lg-b{border-bottom:5px solid var(--blau)} .lg-r{border-bottom:5px solid var(--gruen)}
+  .fortschritt{margin-left:auto;font-size:19px;font-weight:700;background:#fff;border-radius:999px;padding:6px 16px;border:2px solid var(--gelbrand)}
+
+  section{background:var(--karte);border-radius:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);padding:14px 18px 6px;margin-bottom:22px;border:2px dashed #b9bfca}
+  section h2{display:inline-block;margin:0 0 6px;font-weight:400;font-size:clamp(22px,3vw,30px);border:2px solid #555;background:#f3f3f3;padding:2px 16px;box-shadow:2px 2px 0 #bbb}
+  .satzkarte{border-top:1px solid #e6e9f0;padding:14px 0 12px}
+  .satzkarte:first-of-type{border-top:none}
+  .satz{font-size:clamp(26px,4.2vw,44px);line-height:2.1;display:flex;flex-wrap:wrap;align-items:flex-end;row-gap:4px;min-height:1.6em}
+  .wort,.phrase{white-space:pre}
+  .farben .b{border-bottom:5px solid var(--blau)}
+  .farben .r{border-bottom:5px solid var(--gruen)}
+  .b,.r{padding-bottom:0;line-height:1.25}
+  .leer{white-space:pre}
+
+  .slot,.gap{display:inline-flex;align-items:center;justify-content:center;vertical-align:bottom;
+    border:2.5px dashed var(--gelbrand);background:#fffbea;border-radius:14px;cursor:pointer;transition:background .15s,border-color .15s}
+  .slot{min-width:1.05em;height:1.45em;margin:0 1px}
+  .gap{min-width:.75em;height:1.45em;margin:0 3px;padding:0 2px;border-style:dotted;border-color:#d7c27a;background:transparent}
+  .gap:empty{background:#fffdf3}
+  .ziel-hover{background:#ffe08a !important;border-color:#c48a00 !important}
+  .slot.richtig,.gap.richtig{border:2.5px solid var(--ok);background:#e5f7ec}
+  .slot.falsch,.gap.falsch{border:2.5px solid var(--falsch);background:#fde8e8}
+
+  .kastenzeile{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+  .bank{flex:1 1 300px;min-height:72px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    padding:10px 14px 10px 120px;position:relative;border:3px solid #9aa6bd;border-radius:16px;background:#f7f9fd;cursor:pointer}
+  .bank:before{content:"Satzzeichen-\A Kasten";white-space:pre;position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:#5b6680;line-height:1.2}
+  .bank:empty:after{content:"leer – super!";color:#8a93a6;font-size:16px}
+  .token{display:inline-flex;align-items:center;justify-content:center;width:1.05em;height:1.35em;
+    font-size:clamp(26px,4.2vw,44px);font-weight:700;background:var(--gelb);border:2.5px solid var(--gelbrand);border-radius:50%/45%;
+    cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;line-height:1;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+  .slot .token,.gap .token{box-shadow:none;border-color:transparent;background:transparent;width:auto;min-width:.55em;height:1.3em}
+  .token.gewaehlt{outline:4px solid var(--blau);outline-offset:2px;background:#cfe0ff}
+  .token.quelle{opacity:.25}
+  .geist{position:fixed;z-index:1000;pointer-events:none;transform:translate(-50%,-50%) scale(1.15);box-shadow:0 6px 16px rgba(0,0,0,.25)!important;background:var(--gelb)!important;border-color:var(--gelbrand)!important}
+  .gelöst .token{cursor:default}
+
+  .knopf{font-family:inherit;font-size:18px;border:none;border-radius:12px;padding:10px 16px;cursor:pointer;font-weight:700}
+  .pruefen{background:var(--blau);color:#fff}
+  .pruefen:active{transform:translateY(1px)}
+  .neu{background:#e6e9f0;color:#333}
+  .rueck{font-size:19px;min-height:1.5em;margin-top:6px}
+  .rueck.gut{color:var(--ok);font-weight:700}
+  .rueck.nochnicht{color:var(--falsch)}
+  .satzkarte.gelöst .satz{background:#eefaf2;border-radius:12px}
+
+  .lehrkraft{margin-top:30px;font-size:16px;color:#555}
+  .lehrkraft summary{cursor:pointer}
+  .lehrkraft .knopf{font-size:15px;margin:8px 8px 0 0}
+
+  .jubel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.75);z-index:2000}
+  .jubel.zeigen{display:flex}
+  .jubel div{background:#fff;border:4px solid var(--gelbrand);border-radius:24px;padding:28px 40px;text-align:center;font-size:clamp(24px,4vw,38px);box-shadow:0 10px 30px rgba(0,0,0,.2)}
+  .jubel button{margin-top:16px}
+  .konfetti{position:fixed;top:-20px;width:12px;height:18px;z-index:2001;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+  @keyframes wackel{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .wackeln{animation:wackel .3s 2}
+
+  html,body{height:100%}
+  .wrap{max-width:1050px;min-height:100vh;display:flex;flex-direction:column;padding:14px 16px 20px}
+  .kopf{display:flex;align-items:center;gap:12px}
+  .kopf h2{margin:0}
+  .zahnrad{margin-left:auto;font-size:26px;background:none;border:none;cursor:pointer;opacity:.55}
+  .einstellungen{display:none;flex-wrap:wrap;gap:10px;margin:10px 0}
+  .einstellungen.offen{display:flex}
+  .buehne{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:26px;padding:10px 0}
+  .satzkarte{display:none;border:none;padding:0;width:100%}
+  .satzkarte.aktiv{display:flex;flex-direction:column;align-items:center;gap:26px}
+  .satzkarte .satz{justify-content:center}
+  .satzkarte .kastenzeile{justify-content:center;width:100%}
+  .sprecher{display:flex;align-items:center;gap:10px}
+  .nav{display:flex;align-items:center;justify-content:center;gap:18px}
+  .pfeil{font-size:30px;width:64px;height:64px;border-radius:50%;border:none;background:#e6e9f0;cursor:pointer;font-family:inherit}
+  .pfeil:disabled{opacity:.3;cursor:default}
+  .pfeil.weiter-bereit{background:var(--ok);color:#fff}
+  .punkte{display:flex;gap:8px}
+  .punkt{width:16px;height:16px;border-radius:50%;background:#d3d8e3;cursor:pointer}
+  .punkt.jetzt{outline:3px solid var(--blau);outline-offset:2px}
+  .punkt.fertig{background:var(--gelbrand)}
+  .bank{padding-left:14px}
+  .bank:before{display:none}
+  .rueck{text-align:center}
+  .satzkarte .bank{flex:none;min-width:320px;max-width:100%;min-height:80px;justify-content:center;padding:12px 18px}
+  .satzkarte .satz,.satzkarte .token{font-size:clamp(26px,4.3vw,54px)}
+  .sprecher .blase{font-size:24px;min-width:180px}
+  .sprecher .avatar{font-size:58px}
+  .kopf h2{font-size:clamp(20px,2.6vw,28px)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kopf">
+    <h2 id="abschnittTitel"></h2>
+    <button class="zahnrad" id="zahnrad" title="Einstellungen für Lehrkräfte">⚙️</button>
+  </div>
+  <div class="einstellungen" id="einstellungen">
+    <label class="schalter"><input type="checkbox" id="farbenSchalter" checked> Farben</label>
+    <label class="schalter"><input type="checkbox" id="profiSchalter"> Profi-Modus</label>
+    <button class="knopf neu" id="allesNeu">↺ Alles neu</button>
+    <button class="knopf neu" id="loesungZeigen">Lösungen zeigen</button>
+  </div>
+
+  <div class="buehne" id="uebungen"></div>
+
+  <div class="nav">
+    <button class="pfeil" id="zurueck" aria-label="Zurück">◀</button>
+    <div class="punkte" id="punkte"></div>
+    <button class="pfeil" id="vor" aria-label="Weiter">▶</button>
+  </div>
+</div>
+
+<div class="jubel" id="jubel"><div>🎉 Super gemacht! 🎉<br>Alles richtig!<br><button class="knopf pruefen" id="jubelZu">Weiter</button></div></div>
+
+<script>
+const ABSCHNITTE = [
+  { titel: "Vorangestellter Begleitsatz", saetze: [
+    { text: "Timo ruft: „Mir ist das zu laut!“",   b: ["Timo","ruft"] },
+    { text: "Sina meint: „Ich habe eine Idee.“",   b: ["Sina","meint"] },
+    { text: "Mieke fragt: „Welche denn?“",         b: ["Mieke","fragt"] }
+  ]},
+  { titel: "Nachgestellter Begleitsatz", saetze: [
+    { text: "„Mir ist das zu laut!“, ruft Timo.",  b: ["ruft","Timo"] },
+    { text: "„Ich habe eine Idee“, meint Sina.",   b: ["meint","Sina"] },
+    { text: "„Welche denn?“, fragt Mieke.",        b: ["fragt","Mieke"] }
+  ]},
+  { titel: "Eingeschobener Begleitsatz", saetze: [
+    { text: "„Mir ist das“, ruft Timo, „zu laut!“", b: ["ruft","Timo"] },
+    { text: "„Ich habe“, meint Sina, „eine Idee.“", b: ["meint","Sina"] }
+  ]}
+];
+const ZEICHEN = new Set([":", "„", "“", "!", "?", ".", ","]);
+const BUCHSTABE = /[A-Za-zÄÖÜäöüß]/;
+
+let profi = false;
+let tokenZaehler = 0;
+const alleSaetze = [];
+
+/* ---------- Satz zerlegen ---------- */
+function zerlege(s){
+  const seg = [];
+  let i = 0, t = s.text;
+  while(i < t.length){
+    const c = t[i];
+    if(BUCHSTABE.test(c)){
+      let w = ""; while(i < t.length && BUCHSTABE.test(t[i])) w += t[i++];
+      seg.push({art:"wort", w, typ: s.b.includes(w) ? "b" : "r"});
+    } else if(c === " "){ seg.push({art:"leer"}); i++; }
+    else if(ZEICHEN.has(c)){ seg.push({art:"zeichen", z:c}); i++; }
+    else i++;
+  }
+  return seg;
+}
+
+function mischen(a){
+  a = a.slice();
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function machToken(z){
+  const el = document.createElement("span");
+  el.className = "token"; el.textContent = z; el.dataset.z = z; el.dataset.id = "t" + (++tokenZaehler);
+  el.setAttribute("aria-label", "Satzzeichen " + z);
+  return el;
+}
+
+/* ---------- Aufbau ---------- */
+function baueSatz(karte, s){
+  const seg = zerlege(s);
+  const satz = karte.querySelector(".satz");
+  const bank = karte.querySelector(".bank");
+  satz.innerHTML = ""; bank.innerHTML = "";
+  karte.classList.remove("gelöst");
+  karte.querySelector(".rueck").textContent = ""; karte.querySelector(".rueck").className = "rueck";
+
+  const marks = seg.filter(x=>x.art==="zeichen").map(x=>x.z);
+  // Bank mischen, aber nicht genau in Lösungsreihenfolge
+  let gemischt = mischen(marks);
+  for(let k=0;k<5 && gemischt.join("")===marks.join("");k++) gemischt = mischen(marks);
+  gemischt.forEach(z => bank.appendChild(machToken(z)));
+
+  if(!profi){
+    // Wörter derselben Sorte (mit Leerzeichen dazwischen) zu einer unterstrichenen Phrase zusammenfassen
+    let phrase = null;
+    seg.forEach((x, idx) => {
+      if(x.art === "wort"){
+        if(!phrase || phrase.dataset.typ !== x.typ){
+          phrase = document.createElement("span"); phrase.className = "phrase " + x.typ; phrase.dataset.typ = x.typ;
+          satz.appendChild(phrase);
+        }
+        phrase.textContent += x.w;
+      } else if(x.art === "leer"){
+        const vor = seg[idx-1], nach = seg[idx+1];
+        if(phrase && vor && vor.art==="wort" && nach && nach.art==="wort" && nach.typ===vor.typ){
+          phrase.textContent += " ";
+        } else {
+          phrase = null;
+          const l = document.createElement("span"); l.className = "leer"; l.textContent = " "; satz.appendChild(l);
+        }
+      } else {
+        phrase = null;
+        const slot = document.createElement("span"); slot.className = "slot"; slot.dataset.soll = x.z;
+        satz.appendChild(slot);
+      }
+    });
+  } else {
+    // Profi: Lücke vor, zwischen und nach allen Wörtern
+    const woerter = []; const luecken = [""];
+    seg.forEach(x => {
+      if(x.art === "wort"){ woerter.push(x); luecken.push(""); }
+      else if(x.art === "zeichen"){ luecken[luecken.length-1] += x.z; }
+    });
+    luecken.forEach((soll, i) => {
+      if(i > 0){
+        const sp = document.createElement("span"); sp.className = "leer"; sp.textContent = ""; satz.appendChild(sp);
+      }
+      const gap = document.createElement("span"); gap.className = "gap"; gap.dataset.soll = soll;
+      satz.appendChild(gap);
+      if(i < woerter.length){
+        const w = document.createElement("span"); w.className = "wort " + woerter[i].typ; w.textContent = woerter[i].w;
+        satz.appendChild(w);
+      }
+    });
+  }
+}
+
+const SPRECHER = {
+  Timo:  {emoji:"🙉", rede:"Mir ist das<br>zu laut!"},
+  Sina:  {emoji:"💡", rede:"Ich habe<br>eine Idee."},
+  Mieke: {emoji:"🤔", rede:"Welche<br>denn?"}
+};
+let aktuell = 0;
+
+function baueAlles(){
+  const box = document.getElementById("uebungen");
+  box.innerHTML = ""; alleSaetze.length = 0;
+  ABSCHNITTE.forEach(ab => {
+    ab.saetze.forEach(s => {
+      const name = Object.keys(SPRECHER).find(n => s.b.includes(n));
+      const sp = SPRECHER[name];
+      const karte = document.createElement("div");
+      karte.className = "satzkarte";
+      karte.innerHTML = `
+        <div class="sprecher"><div><div class="avatar">${sp.emoji}</div><div class="name">${name}</div></div><div class="blase">${sp.rede}</div></div>
+        <div class="satz"></div>
+        <div class="bank"></div>
+        <div class="kastenzeile">
+          <button class="knopf pruefen">Prüfen ✔</button>
+          <button class="knopf neu" title="Neu anfangen">↺</button>
+        </div>
+        <div class="rueck" aria-live="polite"></div>`;
+      box.appendChild(karte);
+      alleSaetze.push({karte, s, titel: ab.titel});
+      baueSatz(karte, s);
+      karte.querySelector(".pruefen").addEventListener("click", () => pruefe(karte, s, true));
+      karte.querySelector(".neu").addEventListener("click", () => { baueSatz(karte, s); zaehle(); });
+    });
+  });
+  const punkte = document.getElementById("punkte");
+  punkte.innerHTML = "";
+  alleSaetze.forEach((_, i) => {
+    const d = document.createElement("div"); d.className = "punkt";
+    d.addEventListener("click", () => zeige(i));
+    punkte.appendChild(d);
+  });
+  zeige(Math.min(aktuell, alleSaetze.length - 1));
+}
+
+function zeige(i){
+  aktuell = i;
+  if(selected){ selected.classList.remove("gewaehlt"); selected = null; }
+  alleSaetze.forEach((x, k) => x.karte.classList.toggle("aktiv", k === i));
+  document.getElementById("abschnittTitel").textContent = alleSaetze[i].titel;
+  document.getElementById("zurueck").disabled = i === 0;
+  document.getElementById("vor").disabled = i === alleSaetze.length - 1;
+  zaehle();
+}
+
+/* ---------- Prüfen ---------- */
+function inhalt(el){ return [...el.querySelectorAll(".token")].map(t=>t.dataset.z).join(""); }
+
+function pruefe(karte, s, mitRueckmeldung){
+  const ziele = karte.querySelectorAll(".slot, .gap");
+  let fehler = 0, leer = 0;
+  ziele.forEach(z => {
+    const ist = inhalt(z), soll = z.dataset.soll;
+    z.classList.remove("richtig","falsch");
+    if(ist === soll){ if(soll !== "") z.classList.add("richtig"); }
+    else { z.classList.add("falsch"); fehler++; if(ist==="") leer++; }
+  });
+  const rueck = karte.querySelector(".rueck");
+  if(fehler === 0){
+    karte.classList.add("gelöst");
+    rueck.className = "rueck gut";
+    rueck.textContent = ["Richtig! ⭐","Super! ⭐","Klasse gemacht! ⭐","Genau so! ⭐"][Math.floor(Math.random()*4)];
+    if(selected) { selected.classList.remove("gewaehlt"); selected = null; }
+    zaehle(mitRueckmeldung);
+  } else if(mitRueckmeldung){
+    rueck.className = "rueck nochnicht";
+    const imKasten = karte.querySelectorAll(".bank .token").length;
+    rueck.textContent = imKasten > 0 ? "Noch nicht ganz. Es fehlen noch Zeichen." : "Noch nicht ganz. Schau auf Rot.";
+    karte.querySelector(".satz").classList.remove("wackeln"); void karte.offsetWidth;
+    karte.querySelector(".satz").classList.add("wackeln");
+  }
+}
+
+function veraendert(karte){
+  karte.querySelectorAll(".slot, .gap").forEach(z => z.classList.remove("richtig","falsch"));
+  const r = karte.querySelector(".rueck"); r.textContent = ""; r.className = "rueck";
+}
+
+function zaehle(feiern){
+  const n = document.querySelectorAll(".satzkarte.gelöst").length;
+  const g = alleSaetze.length;
+  document.querySelectorAll(".punkt").forEach((d, i) => {
+    d.classList.toggle("fertig", alleSaetze[i].karte.classList.contains("gelöst"));
+    d.classList.toggle("jetzt", i === aktuell);
+  });
+  const vor = document.getElementById("vor");
+  vor.classList.toggle("weiter-bereit", !!alleSaetze[aktuell] && alleSaetze[aktuell].karte.classList.contains("gelöst") && aktuell < g - 1);
+  if(feiern && n === g) jubeln();
+}
+
+function jubeln(){
+  document.getElementById("jubel").classList.add("zeigen");
+  const farben = ["#f2b705","#3f6fc6","#14a64a","#e0457b","#ff8a00"];
+  for(let i=0;i<80;i++){
+    const k = document.createElement("div"); k.className = "konfetti";
+    k.style.left = Math.random()*100 + "vw";
+    k.style.background = farben[i % farben.length];
+    k.style.animationDuration = (2 + Math.random()*2) + "s";
+    k.style.animationDelay = Math.random()*0.6 + "s";
+    document.body.appendChild(k); setTimeout(() => k.remove(), 5000);
+  }
+}
+
+/* ---------- Ziehen & Tippen ---------- */
+let selected = null, drag = null;
+
+function karteVon(el){ return el ? el.closest(".satzkarte") : null; }
+
+function platziere(token, ziel, x){
+  const karte = karteVon(token);
+  if(!ziel || karteVon(ziel) !== karte || karte.classList.contains("gelöst")) return false;
+  const bank = karte.querySelector(".bank");
+  const herkunft = token.parentElement;
+  if(ziel.classList.contains("slot")){
+    const alt = ziel.querySelector(".token");
+    if(alt === token) return true;
+    if(alt){
+      if(herkunft.classList.contains("slot")) herkunft.appendChild(alt);
+      else bank.appendChild(alt);
+    }
+    ziel.appendChild(token);
+  } else if(ziel.classList.contains("gap")){
+    const kinder = [...ziel.querySelectorAll(".token")].filter(t => t !== token);
+    let vor = null;
+    if(x != null){
+      for(const k of kinder){ const r = k.getBoundingClientRect(); if(x < r.left + r.width/2){ vor = k; break; } }
+    }
+    ziel.insertBefore(token, vor);
+  } else {
+    bank.appendChild(token);
+  }
+  veraendert(karte);
+  return true;
+}
+
+function waehle(t){
+  if(selected) selected.classList.remove("gewaehlt");
+  selected = (selected === t) ? null : t;
+  if(selected) selected.classList.add("gewaehlt");
+}
+
+document.addEventListener("pointerdown", e => {
+  const t = e.target.closest(".token");
+  if(!t || t.classList.contains("geist")) return;
+  if(karteVon(t).classList.contains("gelöst")) return;
+  e.preventDefault();
+  drag = { token: t, x0: e.clientX, y0: e.clientY, aktiv: false, geist: null, hover: null, id: e.pointerId };
+});
+
+document.addEventListener("pointermove", e => {
+  if(!drag || e.pointerId !== drag.id) return;
+  if(!drag.aktiv){
+    if(Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
+    drag.aktiv = true;
+    if(selected){ selected.classList.remove("gewaehlt"); selected = null; }
+    const g = drag.token.cloneNode(true); g.classList.add("geist"); g.classList.remove("gewaehlt");
+    const fs = getComputedStyle(drag.token).fontSize; g.style.fontSize = fs;
+    document.body.appendChild(g); drag.geist = g;
+    drag.token.classList.add("quelle");
+  }
+  e.preventDefault();
+  drag.geist.style.left = e.clientX + "px"; drag.geist.style.top = e.clientY + "px";
+  const unter = document.elementFromPoint(e.clientX, e.clientY);
+  let ziel = unter ? unter.closest(".slot, .gap, .bank") : null;
+  if(ziel && karteVon(ziel) !== karteVon(drag.token)) ziel = null;
+  if(drag.hover && drag.hover !== ziel) drag.hover.classList.remove("ziel-hover");
+  if(ziel) ziel.classList.add("ziel-hover");
+  drag.hover = ziel;
+}, {passive:false});
+
+function dragEnde(e){
+  if(!drag || e.pointerId !== drag.id) return;
+  const d = drag; drag = null;
+  if(d.aktiv){
+    if(d.hover) d.hover.classList.remove("ziel-hover");
+    d.geist.remove(); d.token.classList.remove("quelle");
+    const unter = document.elementFromPoint(e.clientX, e.clientY);
+    const ziel = unter ? unter.closest(".slot, .gap, .bank") : null;
+    if(ziel) platziere(d.token, ziel, e.clientX);
+  } else {
+    // Antippen
+    const t = d.token;
+    if(selected && selected !== t && karteVon(selected) === karteVon(t) && !t.parentElement.classList.contains("bank")){
+      const ziel = t.parentElement;
+      const s = selected; selected.classList.remove("gewaehlt"); selected = null;
+      platziere(s, ziel, e.clientX);
+    } else {
+      waehle(t);
+    }
+  }
+}
+document.addEventListener("pointerup", dragEnde);
+document.addEventListener("pointercancel", e => {
+  if(!drag || e.pointerId !== drag.id) return;
+  if(drag.geist){ drag.geist.remove(); drag.token.classList.remove("quelle"); }
+  if(drag.hover) drag.hover.classList.remove("ziel-hover");
+  drag = null;
+});
+
+// Lücke oder Kasten antippen, wenn ein Zeichen ausgewählt ist
+document.addEventListener("click", e => {
+  if(e.target.closest(".token")) return;
+  const ziel = e.target.closest(".slot, .gap, .bank");
+  if(!ziel || !selected) return;
+  if(karteVon(ziel) !== karteVon(selected)) return;
+  const s = selected; s.classList.remove("gewaehlt"); selected = null;
+  platziere(s, ziel, e.clientX);
+});
+
+/* ---------- Schalter ---------- */
+const farbenSchalter = document.getElementById("farbenSchalter");
+function farbenAnwenden(){ document.body.classList.toggle("farben", farbenSchalter.checked); }
+farbenSchalter.addEventListener("change", farbenAnwenden);
+
+document.getElementById("zahnrad").addEventListener("click", () => document.getElementById("einstellungen").classList.toggle("offen"));
+document.getElementById("zurueck").addEventListener("click", () => { if(aktuell > 0) zeige(aktuell - 1); });
+document.getElementById("vor").addEventListener("click", () => { if(aktuell < alleSaetze.length - 1) zeige(aktuell + 1); });
+document.getElementById("profiSchalter").addEventListener("change", e => {
+  profi = e.target.checked; selected = null; baueAlles();
+});
+document.getElementById("allesNeu").addEventListener("click", () => { selected = null; aktuell = 0; baueAlles(); });
+document.getElementById("jubelZu").addEventListener("click", () => document.getElementById("jubel").classList.remove("zeigen"));
+
+document.getElementById("loesungZeigen").addEventListener("click", () => {
+  alleSaetze.forEach(({karte, s}) => {
+    baueSatz(karte, s);
+    const bank = karte.querySelector(".bank");
+    karte.querySelectorAll(".slot, .gap").forEach(z => {
+      for(const ch of z.dataset.soll){
+        const t = [...bank.querySelectorAll(".token")].find(x => x.dataset.z === ch);
+        if(t) z.appendChild(t);
+      }
+    });
+    pruefe(karte, s, false);
+  });
+  zaehle(false);
+});
+
+farbenAnwenden();
+baueAlles();
+</script>
+</body>
+</html>
