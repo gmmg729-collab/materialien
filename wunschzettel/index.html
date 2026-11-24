@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wunschzettel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: ruhig, freundlich, aufgeräumt – ein Zettel, kein Katalog
+   IDEA: ein Geschenkanhänger aus Karton an einer Kordel
+   PICTURE: großer Anhänger mit Kordel im Tannengrün-Band oben
+   COLOUR and TYPE: Tannengrün, Papierweiß, Preiselbeerrot als Akzent; Young Serif + Inter
+   LAYOUT: Band mit Titel + Anhänger, darunter drei Rubriken mit Wunschkarten */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#10201a);--ink:light-dark(#15221c,#eef3ef);--mute:light-dark(#55665d,#a9bab0);
+--green:#1d3b2e;--card:light-dark(#f5f7f4,#182d24);--line:light-dark(#dfe6e0,#2a4237);--red:light-dark(#b3203a,#ff7d8f);--chip:light-dark(#ffffff,#10201a);
+--ok:light-dark(#2f6b4a,#8fd3ac);--okbg:light-dark(#e6f2ea,#1c3a2c)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px)}
+.wrap{max-width:980px;margin:0 auto}
+header.band{background:var(--green);color:#fff}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:center}
+h1{font:400 clamp(40px,7vw,64px)/1.05 "Young Serif",Georgia,serif;margin:0 0 12px;text-wrap:balance}
+.lead{margin:0;color:#d5e3da;max-width:36ch}
+.sum{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.sum span{border:1px solid #ffffff40;border-radius:99px;padding:4px 12px;font-size:14px;color:#e9f1ec}
+.tag{width:100%;max-width:340px;justify-self:center}
+.tag svg{width:100%;height:auto;display:block}
+@media(prefers-reduced-motion:no-preference){.tag svg{transform-origin:62% 6%;animation:sway 5s ease-in-out infinite}}
+@keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+h2{font:400 28px/1.1 "Young Serif",Georgia,serif;margin:0 0 16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h2 small{font:500 14px Inter,sans-serif;color:var(--mute)}
+section+section{margin-top:44px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:14px;transition:opacity .2s}
+.item.taken .body{opacity:.55}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+h3{font:600 19px/1.3 Inter,sans-serif;margin:0}
+.by{color:var(--mute);font-size:15px;margin-top:2px}
+.price{font:400 22px/1.2 "Young Serif",Georgia,serif;white-space:nowrap;text-align:right}
+.price small{display:block;font:500 13px Inter,sans-serif;color:var(--mute)}
+dl{display:grid;grid-template-columns:8.5em minmax(0,1fr);gap:6px 12px;margin:14px 0 0;font-size:15px}
+dt{color:var(--mute)}dd{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{background:var(--chip);border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:14px;white-space:nowrap}
+.chips span.no{text-decoration:line-through;color:var(--mute)}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.links a,button{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;font:600 15px Inter,sans-serif;text-decoration:none;border:1px solid var(--line);color:var(--ink);background:var(--chip);cursor:pointer}
+.links a.best{background:var(--red);border-color:var(--red);color:#fff}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.hint{font-size:14px;color:var(--mute);margin:12px 0 0}
+.hint b{color:var(--red);font-weight:600}
+.claims{border-top:1px dashed var(--line);margin-top:16px;padding-top:12px}
+.claim{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:8px}
+.badge{background:var(--okbg);color:var(--ok);border-radius:99px;padding:6px 14px;font-weight:600;font-size:15px}
+.badge em{font-style:normal;font-weight:400}
+button.mark{background:var(--green);border-color:var(--green);color:#fff}
+button.ghost{background:transparent}
+form.f{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+form.f input{font:16px Inter,sans-serif;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--chip);color:var(--ink);flex:1 1 160px}
+.status{background:light-dark(#fff6e5,#2a2414);border:1px solid light-dark(#f0d9a8,#4a3e20);border-radius:12px;padding:12px 16px;font-size:15px;margin-bottom:24px}
+.status:empty{display:none}
+footer{border-top:1px solid var(--line);color:var(--mute);font-size:14px}
+@media(max-width:600px){.hero{grid-template-columns:1fr}.tag{max-width:240px;order:-1}dl{grid-template-columns:1fr;gap:2px}dd{margin-bottom:8px}.price{text-align:left}}
+</style>
+</head>
+<body>
+<header class="band">
+  <div class="wrap hero">
+    <div>
+      <h1>Wunschzettel</h1>
+      <p class="lead">Mit Größe, Farbe und dem günstigsten verlässlichen Shop.</p>
+      <div class="sum"><span>Kleidung</span><span>Schule</span><span>Bücher</span></div>
+    </div>
+    <div class="tag" aria-hidden="true">
+      <svg viewBox="0 0 320 300">
+        <path d="M200 0 C205 40 190 60 196 78" fill="none" stroke="#e8d9b8" stroke-width="3"/>
+        <path d="M200 0 C170 30 150 50 175 82" fill="none" stroke="#c9b48a" stroke-width="3"/>
+        <g transform="rotate(-12 190 160)">
+          <path d="M120 90 L230 90 L270 140 L270 280 L80 280 L80 140 Z" fill="#000" opacity=".18" transform="translate(6 8)"/>
+          <path d="M120 90 L230 90 L270 140 L270 280 L80 280 L80 140 Z" fill="#f4ecdc"/>
+          <path d="M120 90 L230 90 L270 140 L80 140 Z" fill="#fff" opacity=".45"/>
+          <circle cx="175" cy="120" r="11" fill="#1d3b2e"/>
+          <circle cx="175" cy="120" r="14" fill="none" stroke="#c9b48a" stroke-width="3"/>
+          <rect x="80" y="196" width="190" height="22" fill="#b3203a"/>
+          <rect x="164" y="140" width="22" height="140" fill="#b3203a"/>
+          <rect x="80" y="196" width="190" height="6" fill="#fff" opacity=".2"/>
+          <path d="M175 207 C150 180 130 190 140 205 C148 216 165 210 175 207 C185 210 202 216 210 205 C220 190 200 180 175 207Z" fill="#8f1730"/>
+          <circle cx="175" cy="207" r="7" fill="#d23a54"/>
+          <path d="M110 160 h50 M110 172 h34" stroke="#1d3b2e" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+          <path d="M200 240 h46 M200 252 h30" stroke="#1d3b2e" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<main class="band">
+  <div class="wrap">
+    <section>
+      <h2>Kleidung</h2>
+      <article class="item" data-id="pullover" data-multi="0">
+        <div class="body">
+        <div class="top">
+          <div><h3>Organic Quarter-Zip-Pullover</h3><div class="by">Colorful Standard · Herren</div></div>
+          <div class="price">80 €<small>Preis im Shop</small></div>
+        </div>
+        <dl>
+          <dt>Größe</dt><dd><b>XL</b></dd>
+          <dt>Farbe</dt><dd>möglichst gedeckt / unauffällig, z.&nbsp;B.:
+            <div class="chips" style="margin-top:6px"><span>Deep Black</span><span>Faded Black</span><span>Navy Blue</span><span>Heather Grey</span><span>Lava Grey</span><span>Faded Grey</span><span>Coffee Brown</span><span>Faded Mud</span><span>Dusty Olive</span><span>Midnight Forest</span></div></dd>
+        </dl>
+        <div class="links">
+          <a class="best" href="https://colorfulstandard.com/collections/mens-organic-quarter-zips">Zum Shop: colorfulstandard.com</a>
+        </div>
+        <p class="hint">Gibt es zum festen Preis direkt beim Hersteller.</p>
+        </div>
+      </article>
+    </section>
+
+    <section>
+      <h2>Schule <small>der alte ist kaputt</small></h2>
+      <article class="item" data-id="rucksack" data-multi="0">
+        <div class="body">
+        <div class="top">
+          <div><h3>Allen XL Rolltop-Rucksack</h3><div class="by">Johnny Urban · Farbe Schwarz</div></div>
+          <div class="price">ca. 90 €<small>statt 99,95 €</small></div>
+        </div>
+        <dl>
+          <dt>Modell</dt><dd><b>XL</b>, Schwarz</dd>
+          <dt>Infos</dt><dd>26 l, erweiterbar auf 31 l · Laptopfach bis 17" · wasserabweisend</dd>
+        </dl>
+        <div class="links">
+          <a class="best" href="https://www.schulrucksack.de/p/johnny-urban/johnny-urban-allen-xl-rucksack-black/4260641584932">Günstigster: schulrucksack.de</a>
+          <a href="https://johnny-urban.com/products/rolltop-backpack-allen-xl">Hersteller: johnny-urban.com</a>
+        </div>
+        <p class="hint"><b>Black-Week-Tipp:</b> Bei schulrucksack.de werden bis einschließlich 07.12. automatisch 10&nbsp;% im Warenkorb abgezogen, Versand kostenlos.</p>
+        </div>
+      </article>
+    </section>
+
+    <section>
+      <h2>Bücher <small>bitte als gebundenes Buch, keine E-Books</small></h2>
+
+      <article class="item" data-id="forster" data-multi="0">
+        <div class="body">
+        <div class="top">
+          <div><h3>Der Reisende. Georg Forster und die Entdeckung der Menschlichkeit</h3><div class="by">Andrea Wulf · C. Bertelsmann</div></div>
+          <div class="price">32 €<small>gebunden</small></div>
+        </div>
+        <dl><dt>ISBN</dt><dd>978-3-570-10558-0 · gebundene Ausgabe, 592 Seiten</dd></dl>
+        <div class="links">
+          <a class="best" href="https://www.amazon.de/s?k=9783570105580&i=stripbooks">Gebundene Ausgabe bei Amazon</a>
+        </div>
+        </div>
+      </article>
+
+      <article class="item" data-id="denker" data-multi="1">
+        <div class="body">
+        <div class="top">
+          <div><h3>Große Denker in 60 Minuten</h3><div class="by">Walther Ziegler · ein Band nach Wahl</div></div>
+          <div class="price">ca. 17 €<small>je Band, gebunden</small></div>
+        </div>
+        <dl>
+          <dt>Auswahl</dt><dd>jeder Band aus der Reihe, <b>außer Foucault und Adorno</b>, z.&nbsp;B.:
+            <div class="chips" style="margin-top:6px"><span>Platon</span><span>Kant</span><span>Hegel</span><span>Nietzsche</span><span>Schopenhauer</span><span>Marx</span><span>Freud</span><span>Sartre</span><span>Camus</span><span>Heidegger</span><span>Arendt</span><span>Wittgenstein</span><span>Kafka</span><span>Rousseau</span><span>Descartes</span><span>Hobbes</span><span>Epikur</span><span>Buddha</span><span>Konfuzius</span><span>Habermas</span><span>Rawls</span><span>Popper</span><span class="no">Foucault</span><span class="no">Adorno</span></div></dd>
+          <dt>Format</dt><dd>deutsche Ausgabe, <b>gebunden</b> (nicht Kindle, nicht Taschenbuch, wenn möglich)</dd>
+        </dl>
+        <div class="links">
+          <a class="best" href="https://www.amazon.de/s?k=Walther+Ziegler+in+60+Minuten+gebundene+Ausgabe&i=stripbooks">Gebundene Bände bei Amazon</a>
+        </div>
+        <p class="hint">Gern auch mehrere Bände – dann bitte kurz absprechen, damit nichts doppelt kommt.</p>
+        </div>
+      </article>
+
+      <article class="item" data-id="lp-mlk" data-multi="0">
+        <div class="body">
+        <div class="top">
+          <div><h3>Little People, BIG DREAMS: Martin Luther King</h3><div class="by">Insel Verlag · Deutsche Ausgabe, gebunden · fürs Klassenzimmer</div></div>
+          <div class="price">ca. 15 €<small>gebunden</small></div>
+        </div>
+        <div class="links"><a class="best" href="https://www.amazon.de/s?k=Martin+Luther+King+Little+People+BIG+DREAMS+Deutsche+Ausgabe&i=stripbooks">Bei Amazon ansehen</a></div>
+        </div>
+      </article>
+
+      <article class="item" data-id="lp-curie" data-multi="0">
+        <div class="body">
+        <div class="top">
+          <div><h3>Little People, BIG DREAMS: Marie Curie</h3><div class="by">Insel Verlag · Deutsche Ausgabe, gebunden · fürs Klassenzimmer</div></div>
+          <div class="price">ca. 15 €<small>gebunden</small></div>
+        </div>
+        <div class="links"><a class="best" href="https://www.amazon.de/s?k=Marie+Curie+Little+People+BIG+DREAMS+Deutsche+Ausgabe&i=stripbooks">Bei Amazon ansehen</a></div>
+        </div>
+      </article>
+
+      <article class="item" data-id="lp-mandela" data-multi="0">
+        <div class="body">
+        <div class="top">
+          <div><h3>Little People, BIG DREAMS: Nelson Mandela</h3><div class="by">Insel Verlag · Deutsche Ausgabe, gebunden · fürs Klassenzimmer</div></div>
+          <div class="price">ca. 15 €<small>gebunden</small></div>
+        </div>
+        <div class="links"><a class="best" href="https://www.amazon.de/s?k=Nelson+Mandela+Little+People+BIG+DREAMS+Deutsche+Ausgabe&i=stripbooks">Bei Amazon ansehen</a></div>
+        </div>
+      </article>
+
+      <p class="hint">Little People, BIG DREAMS bitte die normale gebundene Ausgabe, nicht die „Mini“-Version. Neue Bücher kosten in Deutschland wegen der Buchpreisbindung überall gleich viel – also gern auch in der Buchhandlung vor Ort.</p>
+    </section>
+
+  </div>
+</main>
+<footer class="band"><div class="wrap">Preise recherchiert am 24.11.2026, Angaben ohne Gewähr.</div></footer>
+
+</body>
+</html>
