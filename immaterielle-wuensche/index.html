@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Immaterielle Wünsche zuordnen</title>
+<style>
+  /* VOICE: warm, kindgerecht, klar – für Whiteboard und Tablet
+     IDEA: ein Wunschzettel-Sortierspiel unter dem Weihnachtsstern
+     PICTURE: Kärtchen, die in acht farbige Wunsch-Kisten geschoben werden
+     COLOUR and TYPE: Tannengrün, warmes Rot, Papierweiß; Fredoka als runde Kinderschrift
+     LAYOUT: Aufgabe oben, Kärtchen-Stapel, darunter 4×2 Kisten; Abschluss mit Wunschzettel-Liste */
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+  :root{color-scheme:light dark;
+    --bg:light-dark(#f7f1e6,#14241c);--paper:light-dark(#ffffff,#1d3329);--ink:light-dark(#22302a,#f2ede3);
+    --soft:light-dark(#5d6b63,#b9c4bd);--line:light-dark(#e3d8c4,#2f4a3d);--green:#1f6b4a;--red:#c8363f;--gold:#f0b429}
+  :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+  *{box-sizing:border-box;min-width:0}
+  body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.45 Fredoka,"Comic Sans MS","Segoe UI",sans-serif;overflow-x:clip}
+  .emo{font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif}
+  header{background:var(--green);color:#fff;padding:16px max(4vw,16px);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{margin:0;font-size:clamp(24px,3.4vw,38px);line-height:1.1;font-weight:700}
+  header .count{margin-left:auto;background:rgba(255,255,255,.16);padding:6px 16px;border-radius:999px;font-size:18px}
+  main{max-width:1240px;margin:0 auto;padding:18px max(3vw,14px) 40px}
+  .task{font-size:clamp(19px,2.2vw,24px);text-align:center;margin:4px 0 12px}
+  .pool{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:center;min-height:90px;padding:14px;background:var(--paper);border:3px dashed var(--line);border-radius:22px}
+  .pool{min-height:120px}
+  .pool.empty::after{content:"Alle Wünsche sind zugeordnet! 🎉";font-size:24px;color:var(--soft);align-self:center}
+  #pool .card:not(.ph){font-size:clamp(22px,2.6vw,30px);padding:14px 26px;max-width:620px;animation:arrive .4s ease}
+  @keyframes arrive{from{transform:translateY(-16px) scale(.9);opacity:0}}
+  .card{background:#fffdf7;color:#22302a;border:3px solid var(--gold);border-radius:14px;padding:6px 14px;font-size:19px;line-height:1.25;font-weight:600;cursor:grab;user-select:none;touch-action:none;box-shadow:0 4px 0 #d9a21f;max-width:380px;text-align:center}
+  .card::before{content:"• "}
+  .card.dragging{position:fixed;z-index:100;cursor:grabbing;transform:rotate(-3deg) scale(1.08);box-shadow:0 14px 24px rgba(0,0,0,.25);pointer-events:none}
+  .card.placed{cursor:default;box-shadow:none;border-width:2px;font-size:16px;padding:5px 10px;border-color:transparent;background:rgba(255,255,255,.85);text-align:left;max-width:none;width:100%}
+  .card.shake{animation:shake .45s}
+  @keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+  .ph{visibility:hidden}
+  .feedback{min-height:2.4em;text-align:center;font-size:21px;margin:10px 0 4px}
+  .bins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  .bin{border-radius:20px;padding:8px 12px 10px;min-height:120px;border:3px dashed;transition:transform .12s,box-shadow .12s}
+  .bin .pic{font-size:52px;line-height:1.1;text-align:center}
+  .bin .lbl{text-align:center;min-height:52px;margin-bottom:6px}
+  .bin .lbl h3{margin:0;font-size:22px}
+  .bin .lbl .q{font-size:17px;color:#4a5750;cursor:pointer;display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.6)}
+  .bin.found .lbl{animation:reveal .5s ease}
+  @keyframes reveal{from{transform:scale(.6);opacity:0}}
+  .bin.glow{animation:glow 1s ease-in-out 3}
+  @keyframes glow{50%{box-shadow:0 0 0 10px var(--gold);transform:scale(1.03)}}
+  .bin small{display:block;color:#4a5750;font-size:15px;margin:2px 0 0}
+  .bin .drop{display:flex;flex-direction:column;gap:6px}
+  .bin.over{transform:scale(1.03);box-shadow:0 0 0 6px var(--gold)}
+  .bin.ok{animation:ok .6s}
+  @keyframes ok{50%{box-shadow:0 0 0 9px #2e9e5b}}
+  .bin{color:#22302a}
+  .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  button{font:inherit;font-weight:600;cursor:pointer;border:none;border-radius:14px;padding:12px 24px;min-height:44px;background:var(--red);color:#fff;box-shadow:0 4px 0 #8f2129}
+  button.ghost{background:var(--paper);color:var(--ink);border:2px solid var(--line);box-shadow:none}
+  button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+  /* Abschluss */
+  #done{display:none}
+  .sheet{background:#fffdf7;color:#22302a;border-radius:22px;padding:22px clamp(16px,3vw,36px);border:3px solid var(--red);box-shadow:0 8px 0 rgba(0,0,0,.08)}
+  .sheet h2{margin:0 0 4px;font-size:clamp(26px,3vw,36px);color:var(--red)}
+  .sheet p{margin:0 0 14px;color:#4a5750}
+  .list{columns:2 300px;column-gap:28px}
+  .group{break-inside:avoid;margin-bottom:14px}
+  .group b{font-size:20px}
+  .group ul{margin:4px 0 0;padding-left:1.2em}
+  .group li{margin:2px 0}
+  @media(max-width:900px){.bins{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:420px){.bins{grid-template-columns:1fr}.card{font-size:18px}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <span class="emo" style="font-size:36px">🎁</span>
+  <h1>Wünsche, die man nicht kaufen kann</h1>
+  <span class="count" id="count">0 von 16</span>
+</header>
+<main>
+  <section id="game">
+    <p class="task">Lies den Wunsch. Zu welchem Bild passt er? Schiebe ihn in die richtige Kiste!</p>
+    <div class="pool" id="pool"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="bins" id="bins"></div>
+    <div class="row">
+      <button class="ghost" id="restart">↺ Neu starten</button>
+      <button class="ghost" id="revealAll">👀 Alle Bilder aufdecken</button>
+      <button id="toDone" style="display:none">Zu unseren Wunschzettel-Ideen ➜</button>
+    </div>
+  </section>
+  <section id="done">
+    <div class="sheet">
+      <h2>✨ Ideen für deinen Wunschzettel</h2>
+      <p>Such dir mindestens einen Wunsch aus, den man nicht kaufen kann, und schreib ihn auf deinen Wunschzettel!</p>
+      <div class="list" id="list"></div>
+    </div>
+    <div class="row">
+      <button class="ghost" id="back">↺ Noch einmal spielen</button>
+    </div>
+  </section>
+</main>
+<script>
+{
+const CATS=[
+  {id:'zeit',emo:'⏰',name:'Zeit',hint:'Zeit miteinander verbringen',col:'#fff1c9',bd:'#e0a400',
+   items:['einen Spieleabend zusammen','einen Nachmittag nur mit Mama oder Papa']},
+  {id:'glueck',emo:'🍀',name:'Glück',hint:'schöne Erlebnisse',col:'#dff3e4',bd:'#2e9e5b',
+   items:['einen Ausflug in den Zoo','zusammen Schlitten fahren']},
+  {id:'freunde',emo:'🤝',name:'Freunde',hint:'etwas mit Freunden machen',col:'#e2ecfb',bd:'#3b78d8',
+   items:['eine Übernachtung mit meinem besten Freund / meiner besten Freundin','einen Kinonachmittag mit Freunden']},
+  {id:'familie',emo:'👪',name:'Familie',hint:'mit der ganzen Familie',col:'#fde3d3',bd:'#e0752d',
+   items:['zusammen Plätzchen backen','gemeinsam den Weihnachtsbaum schmücken']},
+  {id:'liebe',emo:'❤️',name:'Liebe',hint:'Nähe und Kuscheln',col:'#fde1e6',bd:'#d6455d',
+   items:['eine lange Kuschelzeit','jeden Abend eine Gute-Nacht-Geschichte']},
+  {id:'gesund',emo:'💪',name:'Gesundheit',hint:'gesund und fit bleiben',col:'#e0f4f4',bd:'#1f9a9a',
+   items:['einen Winterspaziergang zusammen','zusammen Sport machen']},
+  {id:'frieden',emo:'🕊️',name:'Frieden',hint:'kein Streit',col:'#ece6fa',bd:'#7a5cc7',
+   items:['Weihnachten ohne Streit','uns nach einem Streit schnell wieder vertragen']},
+  {id:'noten',emo:'⭐',name:'gute Noten',hint:'Hilfe beim Lernen',col:'#f3f0d6',bd:'#a08a14',
+   items:['jemand übt mit mir Lesen','Hilfe bei den Hausaufgaben']}
+];
+const ALL=CATS.flatMap(c=>c.items.map(t=>({t,c:c.id})));
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const catOf=id=>CATS.find(c=>c.id===id);
+let done=0, drag=null, queue=[], tries=0;
+function nextCard(){
+  tries=0; const pool=$('pool');
+  if(done>=queue.length){pool.innerHTML='';pool.classList.add('empty');return}
+  const w=queue[done];
+  pool.innerHTML=`<div class="card" data-cat="${w.c}">${esc(w.t)}</div>`;
+  pool.querySelector('.card').addEventListener('pointerdown',down);
+}
+
+$('bins').innerHTML=CATS.map(c=>`<div class="bin" data-cat="${c.id}" style="background:${c.col};border-color:${c.bd}">
+  <div class="pic emo">${c.emo}</div><div class="lbl"><span class="q">❓ Was bedeutet das Bild?</span></div><div class="drop"></div></div>`).join('');
+function reveal(bin){
+  if(bin.classList.contains('found'))return;
+  const c=catOf(bin.dataset.cat);
+  bin.classList.add('found');
+  bin.querySelector('.lbl').innerHTML=`<h3>${c.name}</h3><small>${c.hint}</small>`;
+}
+document.querySelectorAll('.bin').forEach(b=>b.querySelector('.lbl').addEventListener('click',()=>reveal(b)));
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function start(){
+  done=0; $('feedback').textContent=''; $('toDone').style.display='none';
+  document.querySelectorAll('.bin .drop').forEach(d=>d.innerHTML='');
+  document.querySelectorAll('.bin').forEach(b=>{b.classList.remove('found','glow');b.querySelector('.lbl').innerHTML='<span class="q">❓ Was bedeutet das Bild?</span>'});
+  queue=shuffle(ALL); $('pool').classList.remove('empty'); nextCard();
+  count(); $('game').style.display='block'; $('done').style.display='none';
+}
+function count(){ $('count').textContent=`Wunsch ${Math.min(done+1,ALL.length)} von ${ALL.length}`; }
+function binAt(x,y){return [...document.querySelectorAll('.bin')].find(b=>{const r=b.getBoundingClientRect();return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom})}
+function down(e){
+  const card=e.currentTarget; if(card.classList.contains('placed'))return;
+  e.preventDefault();
+  const r=card.getBoundingClientRect(), ph=card.cloneNode(true); ph.classList.add('ph'); card.after(ph);
+  drag={card,ph,dx:e.clientX-r.left,dy:e.clientY-r.top};
+  card.style.width=r.width+'px'; card.classList.add('dragging'); move(e);
+  addEventListener('pointermove',move); addEventListener('pointerup',up); addEventListener('pointercancel',up);
+}
+function move(e){
+  if(!drag)return;
+  drag.card.style.left=(e.clientX-drag.dx)+'px'; drag.card.style.top=(e.clientY-drag.dy)+'px';
+  drag.y=e.clientY; autoScroll();
+  document.querySelectorAll('.bin').forEach(b=>b.classList.remove('over'));
+  const b=binAt(e.clientX,e.clientY); if(b)b.classList.add('over');
+}
+let scrollTimer=null;
+function autoScroll(){
+  if(scrollTimer)return;
+  scrollTimer=setInterval(()=>{
+    if(!drag){clearInterval(scrollTimer);scrollTimer=null;return}
+    const edge=80;
+    if(drag.y>innerHeight-edge)scrollBy(0,14); else if(drag.y<edge)scrollBy(0,-14);
+  },16);
+}
+function up(e){
+  if(!drag)return;
+  removeEventListener('pointermove',move); removeEventListener('pointerup',up); removeEventListener('pointercancel',up);
+  document.querySelectorAll('.bin').forEach(b=>b.classList.remove('over'));
+  const {card,ph}=drag; drag=null;
+  card.classList.remove('dragging'); card.style.left=card.style.top=card.style.width='';
+  const bin=binAt(e.clientX,e.clientY), right=catOf(card.dataset.cat), fb=$('feedback');
+  if(!bin){ph.replaceWith(card);return}
+  if(bin.dataset.cat===right.id){
+    ph.remove(); card.classList.add('placed'); bin.querySelector('.drop').appendChild(card);
+    bin.classList.remove('ok'); void bin.offsetWidth; bin.classList.add('ok');
+    const isNew=!bin.classList.contains('found'); reveal(bin); bin.classList.remove('glow');
+    fb.innerHTML= isNew ? `✅ Super! Ihr habt ein Bild entdeckt: <b>${right.emo} ${right.name}</b> – ${right.hint}.` : `✅ Super! <b>„${esc(card.textContent)}“</b> passt zu <b>${right.emo} ${right.name}</b>.`;
+    done++; count(); setTimeout(nextCard,450);
+    if(done===ALL.length){ $('count').textContent='Fertig!'; $('toDone').style.display='inline-block'; fb.innerHTML='🎉 Toll gemacht! Alle Wünsche sind in der richtigen Kiste.'; }
+  } else {
+    ph.replaceWith(card); card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    tries++;
+    if(tries>=2){
+      const rb=document.querySelector(`.bin[data-cat="${right.id}"]`); rb.classList.remove('glow'); void rb.offsetWidth; rb.classList.add('glow');
+      fb.innerHTML='💡 Tipp: Die leuchtende Kiste passt!';
+    } else fb.innerHTML='🤔 Das passt noch nicht. Schau dir die Bilder noch einmal genau an!';
+  }
+}
+function showDone(){
+  $('list').innerHTML=CATS.map(c=>`<div class="group"><b><span class="emo">${c.emo}</span> ${c.name}</b><ul>${c.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div>`).join('');
+  $('game').style.display='none'; $('done').style.display='block'; scrollTo(0,0);
+}
+$('restart').addEventListener('click',start);
+$('back').addEventListener('click',start);
+$('toDone').addEventListener('click',showDone);
+$('revealAll').addEventListener('click',()=>document.querySelectorAll('.bin').forEach(reveal));
+start();
+}
+</script>
+</body>
+</html>
